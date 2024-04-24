@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const logger = require('morgan');
+const db = require('./models')
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -16,7 +17,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(logger('dev'));
@@ -28,6 +29,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/login', loginRouter);
+
+db.mongoose
+  .connect (db.url, {})
+  .then (() => {
+    console.log('Database connection established');
+  })
+  .catch(err => {
+    console.log('Unable to establish a database connection', err);
+    process.exit();
+  });
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
