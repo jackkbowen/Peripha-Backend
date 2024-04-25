@@ -1,19 +1,23 @@
 {
-  "name": "server",
-  "version": "0.0.0",
-  "private": true,
+  "name": "perpiha",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
   "scripts": {
-    "start": "node ./bin/www"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "nodejs",
+    "express",
+    "rest",
+    "api",
+    "mongodb"
+  ],
+  "author": "Peripha",
+  "license": "ISC",
   "dependencies": {
-    "body-parser": "^1.20.2",
-    "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
-    "debug": "~2.6.9",
-    "express": "^4.19.2",
-    "http-errors": "~1.6.3",
-    "jade": "^0.29.0",
-    "mongoose": "^8.3.2",
-    "morgan": "~1.9.1"
+    "express": "^4.18.2",
+    "mongoose": "^6.11.1"
   }
 }
