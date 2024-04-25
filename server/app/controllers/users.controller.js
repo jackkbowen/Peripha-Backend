@@ -53,6 +53,17 @@ exports.findAll = (req, res) => {
     });
 };
 
+// Check if email and password exists in the database
+exports.checkInformation = (req, res) => {
+
+  const query = Users.find({email: req.params['email']});
+  query.getFilter();
+
+  const results = query.exec();
+
+  res.send(req.params['email']);
+};
+
 // Find a single User with an id
 exports.findOne = (req, res) => {
   const id = req.params.id;

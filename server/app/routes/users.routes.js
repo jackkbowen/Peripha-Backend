@@ -5,11 +5,14 @@ module.exports = app => {
 
   // Returns login page (idk if we need this, just a placeholder. react router handles serving pages)
   router.get('/', (req, res) => {
-    res.json({ message: "Welcome to Periphia." });
+    res.json({ message: "Welcome to Peripha Login Page." });
   });
 
   // Create a new User
   router.post("/register", user.create);
 
-  app.use("/login", router);
+  // Authentication
+  router.get("/:email", user.checkInformation);
+
+  app.use("/user", router);
 };
