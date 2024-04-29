@@ -9,7 +9,7 @@ module.exports = app => {
     });
 
     // Access user's profile page
-    router.get("/:username", user.checkInformation);
+    router.get("/:email", user.checkInformation);
 
     app.use("/profile", router);
 };

@@ -1,4 +1,5 @@
 const express = require("express");
+const passport = require("passport");
 const cors = require("cors");
 
 const app = express();
@@ -34,7 +35,6 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to Peripha Landing Page."});
 });
 
-require("./app/routes/users.routes")(app);
 require("./app/routes/login.routes")(app);
 require("./app/routes/profile.routes")(app);
 require("./app/routes/signup.routes")(app);

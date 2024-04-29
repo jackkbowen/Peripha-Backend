@@ -27,12 +27,14 @@ exports.create = (req, res) => {
     .save(user)
     .then(data => {
       res.send(data);
+      res.redirect('/login')
     })
     .catch(err => {
       res.status(500).send({
         message:
           err.message || "Some error occurred while creating the Users."
       });
+      res.redirect('/signup')
     });
 };
 
@@ -63,6 +65,14 @@ exports.checkInformation = (req, res) => {
 
   res.send(req.params['email']);
 };
+
+exports.checkCredentials = (req, res) => {
+  const email = req.body.email;
+  const username = req.body.username;
+  const password = req.body.password;
+
+  res.send(({message: email + username + password}));
+}
 
 // Find a single User with an id
 exports.findOne = (req, res) => {
