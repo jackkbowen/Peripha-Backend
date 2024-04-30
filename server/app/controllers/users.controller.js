@@ -27,14 +27,12 @@ exports.create = (req, res) => {
     .save(user)
     .then(data => {
       res.send(data);
-      res.redirect('/login')
     })
     .catch(err => {
       res.status(500).send({
         message:
           err.message || "Some error occurred while creating the Users."
       });
-      res.redirect('/signup')
     });
 };
 
