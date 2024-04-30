@@ -7,7 +7,7 @@ const MongoDBStore = require('connect-mongodb-session')(session)
 const app = express();
 
 var corsOptions = {
-  origin: "http://localhost:8081"
+  origin: "*"
 };
 
 app.use(cors(corsOptions));
@@ -39,7 +39,6 @@ const sessionStore = new MongoDBStore({
   collection: 'sessions',
 })
 
-
 app.use(
     // cookie basic settings
     session({
@@ -49,8 +48,6 @@ app.use(
         cookie: {
             maxAge: 1000 * 60 * 60 * 24, // How long it takes for cookies to expire. 24 hours (mili, seconds, minutes, hours)
             sameSite: true,
-  
-            // to turn on just in production
             secure: false, 
             httpOnly: false 
         },
@@ -59,11 +56,9 @@ app.use(
     })
   )
 
-
 // Passport initizilaization for resource authorization.
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 // Landing page route
 app.get("/", (req, res) => {
