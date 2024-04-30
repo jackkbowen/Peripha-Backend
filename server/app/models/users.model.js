@@ -1,10 +1,9 @@
-const passportLocalMongoose = require('passport-local-mongoose');
-
 module.exports = mongoose => {
   var schema = mongoose.Schema(
     {
-      email: {type: String, required:true, unique:true},
-      username: {type: String, required:true, unique:true},
+      email: String,
+      username: String,
+      password: String,
   },
   {timestamps: true}
 );
@@ -14,8 +13,6 @@ module.exports = mongoose => {
     object.id = _id;
     return object;
   });
-
-  schema.plugin(passportLocalMongoose);
 
   const Users = mongoose.model("users", schema);
   return Users;
