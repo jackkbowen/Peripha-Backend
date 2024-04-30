@@ -3,6 +3,8 @@ const passportLocalMongoose = require('passport-local-mongoose');
 module.exports = mongoose => {
   var schema = mongoose.Schema(
     {
+      // No Password needed, User.register() will create a hashed password
+    
       email: {type: String, required:true, unique:true},
       username: {type: String, required:true, unique:true},
   },
