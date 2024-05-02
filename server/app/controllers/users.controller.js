@@ -17,7 +17,7 @@ exports.create = asyncHandler(async(req, res) => {
     } 
 
     // Check for existing user
-    const userExists = await Users.findOne({email: req.body.email}, 'email');
+    const userExists = await Users.findOne({$or: [{ email: req.body.email }, { username: req.body.username }]});
     //console.log(userExists);
         if (userExists) {
             res.status(409).send({message: "ERROR: User already exists. Please use a different username/password.", 
