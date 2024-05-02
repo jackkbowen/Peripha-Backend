@@ -29,6 +29,5 @@ module.exports = mongoose => {
     return object;
   });
 
-  const Users = mongoose.model("users", schema);
-  return Users;
+  module.exports = mongoose.model("users", schema);
 };

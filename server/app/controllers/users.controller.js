@@ -1,9 +1,9 @@
 const genPassword = require('../config/password').genPassword;
-const db = require("../models");
-const Users = db.users;
+const Users = require("../models/users.model");
+const asyncHandler = require('express-async-handler')
 
 // Create and Save a new Users
-exports.create = (req, res) => {
+exports.create = asyncHandler(async(req, res, next) => {
     // Validate request
     if (!req.body.email) {
         res.status(400).send({message: "Email field cannot be empty"})
@@ -17,16 +17,26 @@ exports.create = (req, res) => {
     } 
 
     // Check for existing user
-    const userExists = Users.findOne(req.body.email)
+    const userExists = await Users.findOne({email: req.body.email}, 'email');
+    //console.log(userExists);
         if (userExists) {
-            res.status(409).send({message: "ERROR: User already exists. Please use a different username/password."})
+            res.status(409).send({message: "ERROR: User already exists. Please use a different username/password.", 
+                                email: req.body.email});
+            return;
         }
+
+     // Generate hash and salt from password to be stored.
+    const saltHash = genPassword(String(req.body.password));
+    const genSalt = saltHash.salt;
+    const genHash = saltHash.hash;
+
 
     // Create a new User
     const user = new Users({
         email: req.body.email,
         username: req.body.username,
-        password: req.body.password
+        hash: genHash,
+        salt: genSalt
     });
 
     // Save User in the database
@@ -43,7 +53,7 @@ exports.create = (req, res) => {
             });
             return
         });
-};
+});
 
 // Retrieve all Users from the database.
 exports.findAll = (req, res) => {

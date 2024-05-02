@@ -15,7 +15,7 @@ module.exports = app => {
         failureRedirect: '/login',
         failureMessage: true
         }), function(req, res) {
-            res.redirect('/~' + req.body.username);
+            res.redirect('/profile/:' + req.body.username);
         });
 
 
