@@ -1,5 +1,6 @@
-module.exports = mongoose => {
-  var schema = mongoose.Schema(
+const mongoose = require('mongoose')
+
+const userSchema = mongoose.Schema(
     {
       email: {
         type: String,
@@ -23,11 +24,6 @@ module.exports = mongoose => {
   {timestamps: true}
 );
 
-  schema.method("toJSON", function() {
-    const { __v, _id, ...object } = this.toObject();
-    object.id = _id;
-    return object;
-  });
 
-  module.exports = mongoose.model("users", schema);
-};
+module.exports = mongoose.model('User', userSchema);
+

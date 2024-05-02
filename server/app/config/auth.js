@@ -2,7 +2,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const asyncHandler = require('express-async-handler');
 const validPassword = require('./password').validPassword;
-const Users = require("../models/users.model");
+const User = require("../models/users.model");
 
 const customFields = {
     usernameField: 'email',
@@ -10,7 +10,7 @@ const customFields = {
 };
 
 const verifyCallback = asyncHandler(async(email, password, done) => {
-    const user = await Users.findOne({email}, 'email hash salt')
+    const user = await User.findOne({email})
     // No user registered with inputted email.
     if (!user) { 
         return done(null, false);
@@ -42,3 +42,4 @@ passport.deserializeUser((userId, done) => {
         })
         .catch(err => done(err))
 });
+

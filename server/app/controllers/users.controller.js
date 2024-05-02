@@ -3,7 +3,7 @@ const Users = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
 
 // Create and Save a new Users
-exports.create = asyncHandler(async(req, res, next) => {
+exports.create = asyncHandler(async(req, res) => {
     // Validate request
     if (!req.body.email) {
         res.status(400).send({message: "Email field cannot be empty"})
