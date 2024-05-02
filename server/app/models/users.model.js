@@ -1,9 +1,24 @@
 module.exports = mongoose => {
   var schema = mongoose.Schema(
     {
-      email: String,
-      username: String,
-      password: String,
+      email: {
+        type: String,
+         required:true, 
+         unique:true
+      },
+      username: {
+        type: String, 
+        required:true, 
+        unique:true
+      },
+      hash: {
+        type: String,
+        required: true
+      },
+      salt: {
+        type: String,
+        required: true
+      },
   },
   {timestamps: true}
 );

@@ -1,5 +1,7 @@
 module.exports = app => {
     const user = require("../controllers/users.controller.js");
+    const passport = require('passport');
+    const passport_local = require('passport-local');
 
     var router = require("express").Router();
 
@@ -9,7 +11,12 @@ module.exports = app => {
     });
 
     // Take login information and autenticate user
-    router.post("/", user.checkCredentials);
+    router.post("/", passport.authenticate('local', {
+        failureRedirect: '/login',
+        failureMessage: true
+        }), function(req, res) {
+            res.redirect('/~' + req.body.username);
+        });
 
 
     app.use("/login", router);

@@ -1,3 +1,4 @@
+const genPassword = require('../config/password').genPassword;
 const db = require("../models");
 const Users = db.users;
 
@@ -14,6 +15,12 @@ exports.create = (req, res) => {
         res.status(400).send({message: "Password field cannot be empty"})
         return;
     } 
+
+    // Check for existing user
+    const userExists = Users.findOne(req.body.email)
+        if (userExists) {
+            res.status(409).send({message: "ERROR: User already exists. Please use a different username/password."})
+        }
 
     // Create a new User
     const user = new Users({
