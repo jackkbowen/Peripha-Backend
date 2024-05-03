@@ -1,7 +1,7 @@
 const express = require("express");
 const session = require('express-session')
 const passport = require("passport")
-require('./app/config/auth');
+require('./app/utils/auth');
 const cors = require("cors");
 
 const app = express();

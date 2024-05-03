@@ -1,4 +1,4 @@
-const genPassword = require('../config/password').genPassword;
+const genPassword = require('../utils/password').genPassword;
 const Users = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
 
