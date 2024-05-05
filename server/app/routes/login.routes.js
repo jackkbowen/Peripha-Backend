@@ -3,7 +3,8 @@ module.exports = app => {
     const passport = require('passport');
     const passport_local = require('passport-local');
 
-    var router = require("express").Router();
+
+    const router = require("express").Router();
 
     // Returns login page (idk if we need this, just a placeholder. react router handles serving pages)
     router.get('/', (req, res) => {
