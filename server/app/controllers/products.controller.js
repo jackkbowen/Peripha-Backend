@@ -77,9 +77,20 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
                     message: "Not found Users with id " + username });
                 return;
             }
-            else {
-                products = data.products;
-            }
+            products = data.products;
+            Products.find({
+                '_id': {
+                    $in : products
+                }
+            }).then(data => {
+                res.status(200).send(data);
+                return;
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message: "Error retrieving Products from user " + username });
+                return;
+            });
         })
         .catch(err => {
             res.status(500).send({
@@ -87,17 +98,5 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
             return;
         });
 
-    Products.find({
-        '_id': {
-            $in : products
-        }
-    }).then(data => {
-        res.status(200).send(data);
-        return;
-    })
-    .catch(err => {
-        res.status(500).send({
-            message: "Error retrieving Products from user " + username });
-        return;
-    });
+    
 });
