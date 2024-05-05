@@ -1,4 +1,5 @@
 const Products = require("../models/products.model");
+const Users = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
 
 exports.create = asyncHandler(async(req, res) => {
@@ -24,7 +25,9 @@ exports.create = asyncHandler(async(req, res) => {
         name: req.body.name,
         category: req.body.category,
         manufacturer: req.body.manufacturer,
-        model: req.body.model
+        model: req.body.model,
+        reviews: [],
+        specs: req.body.specs
     });
 
     // Save Product in the database
@@ -41,4 +44,60 @@ exports.create = asyncHandler(async(req, res) => {
             });
             return
         });
+});
+
+// Find a single product with an id
+exports.findOne = (req, res) => {
+    const id = req.params.productId;
+
+    Products.findById(id)
+        .then(data => {
+            if (!data) {
+                res.status(404).send({ 
+                    message: "No Products found with id " + id });
+                return;
+            }
+            else res.status(200).send(data);;
+            return;
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error retrieving Product with id=" + id });
+            return;
+        });
+};
+
+exports.findUserProducts = asyncHandler(async(req, res) => {
+    const username = req.params.username;
+    let products = [];
+    await Users.findOne({username: username})
+        .then(data => {
+            if (!data) {
+                res.status(404).send({ 
+                    message: "Not found Users with id " + username });
+                return;
+            }
+            else {
+                products = data.products;
+            }
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error retrieving Users with username=" + username });
+            return;
+        });
+
+    Products.find({
+        '_id': {
+            $in : products
+        }
+    }).then(data => {
+        res.status(200).send(data);
+        return;
+    })
+    .catch(err => {
+        res.status(500).send({
+            message: "Error retrieving Products from user " + username });
+        return;
+    });
 });

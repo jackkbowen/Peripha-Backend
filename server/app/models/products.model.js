@@ -7,6 +7,11 @@ const userSchema = mongoose.Schema(
          required:true, 
          unique:true
       },
+      specs: {
+        type: Object,
+        required: true,
+        default : {} 
+      },
       category: {
         type: String, 
         required:true, 
@@ -20,6 +25,15 @@ const userSchema = mongoose.Schema(
         type: String,
         required: true
       },
+      reviews: {
+        type: [String],
+        required: true
+      },
+      image: {
+        type: String,
+        required: true,
+        default: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Question_Mark.svg/1200px-Question_Mark.svg.png"
+      }
   },
   {timestamps: true}
 );

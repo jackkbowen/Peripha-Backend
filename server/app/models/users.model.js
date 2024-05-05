@@ -20,6 +20,10 @@ const userSchema = mongoose.Schema(
         type: String,
         required: true
       },
+      products: {
+        type: [String],
+        default: []
+      }
   },
   {timestamps: true}
 );

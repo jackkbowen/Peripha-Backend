@@ -6,7 +6,12 @@ module.exports = app => {
     // Create a new Product
     router.post("/", product.create);
 
+    // Get a product by product ID
+    router.get("/productId/:productId", product.findOne);
+
+    // Get multiple products based off of username
+    router.get("/user/:username", product.findUserProducts);
 
     app.use("/products", router);
 };
-  
+    
