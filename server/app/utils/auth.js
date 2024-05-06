@@ -5,12 +5,12 @@ const validPassword = require('./password').validPassword;
 const User = require("../models/users.model");
 
 const customFields = {
-    usernameField: 'email',
+    usernameField: 'username',
     passwordField: 'password'
 };
 
-const verifyCallback = asyncHandler(async(email, password, done) => {
-    const user = await User.findOne({email})
+const verifyCallback = asyncHandler(async(username, password, done) => {
+    const user = await User.findOne({username: username})
     // No user registered with inputted email.
     if (!user) { 
         return done(null, false);
