@@ -1,11 +1,16 @@
 {
-  "name": "perpiha",
+  "name": "peripha",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
   "scripts": {
+<<<<<<< HEAD
     "test": "echo \"Error: no test specified\" && exit 1", 
     "start": "nodemon server.js"
+=======
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+>>>>>>> products
   },
   "keywords": [
     "nodejs",

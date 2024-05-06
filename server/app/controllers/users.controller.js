@@ -36,7 +36,11 @@ exports.create = asyncHandler(async(req, res) => {
         email: req.body.email,
         username: req.body.username,
         hash: genHash,
-        salt: genSalt
+        profilePicture: "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
+        salt: genSalt,
+        products: [],
+        displayName: req.body.username,
+        bio: ""
     });
 
     // Save User in the database
@@ -112,6 +116,26 @@ exports.findOne = (req, res) => {
         .catch(err => {
             res.status(500).send({
                 message: "Error retrieving Users with id=" + id });
+            return;
+        });
+};
+
+// Find a single User with an id
+exports.findUser = (req, res) => {
+    const username = req.params.username;
+    Users.findOne({username: username})
+        .then(data => {
+            if (!data) {
+                res.status(404).send({ 
+                    message: "Not found Users with id " + username });
+                return;
+            }
+            else res.status(200).send(data);;
+            return;
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error retrieving Users with username=" + username });
             return;
         });
 };

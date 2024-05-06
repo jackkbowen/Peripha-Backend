@@ -11,6 +11,9 @@ module.exports = app => {
   // Create a new User
   router.post("/register", user.create);
 
+  // Fetch user information by username
+  router.get("/:username", user.findUser);
+
 
 
   app.use("/user", router);
