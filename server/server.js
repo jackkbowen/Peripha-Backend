@@ -34,28 +34,28 @@ db.mongoose
     process.exit();
   });
 
-  
-  app.use(
-    // cookie basic settings
-    session({
-        secret: 'somevalue',
-        name: 'session-id',
-        cookie: {
-            maxAge: 1000 * 60 * 60 * 24, // 24 hours (mili, sec, min, hour)
-            sameSite: true,
-  
-            // to turn on just in production
-            secure: false, 
-            httpOnly: false 
-        },
-        resave: false,
-        saveUninitialized: true,
-    })
-  )
-  
-  // Passport initizilaization for resource authorization.
-  app.use(passport.initialize());
-  app.use(passport.session());
+
+app.use(
+  // cookie basic settings
+  session({
+      secret: 'somevalue',
+      name: 'session-id',
+      cookie: {
+          maxAge: 1000 * 60 * 60 * 24, // 24 hours (mili, sec, min, hour)
+          sameSite: true,
+
+          // to turn on just in production
+          secure: false, 
+          httpOnly: false 
+      },
+      resave: false,
+      saveUninitialized: true,
+  })
+)
+
+// Passport initizilaization for resource authorization.
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 // Landing page route
