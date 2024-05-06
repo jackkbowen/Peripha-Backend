@@ -22,7 +22,6 @@ const verifyCallback = asyncHandler(async(username, password, done) => {
         return done(null, user);
     // Failed login.
     } else { 
-        user.save();
         return done(null, false);
     }
 })

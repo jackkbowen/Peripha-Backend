@@ -7,7 +7,7 @@ module.exports = app => {
     router.get("/", user.findAll);
   
     // Retrieve a single User with email
-    router.get("/:email", user.checkInformation);
+    router.get("/:username", user.findUser);
   
     // Delete a Tutorial with id
     router.delete("/:id", user.delete);

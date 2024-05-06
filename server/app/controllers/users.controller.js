@@ -89,19 +89,9 @@ exports.checkInformation = (req, res) => {
     return;
 };
 
-exports.checkCredentials = (req, res) => {
-    const email = req.body.email;
-    const username = req.body.username;
-    const password = req.body.password;
-
-    res.status(200).send(({
-        message: email + username + password}));
-    return;
-}
-
 // Find a single User with an id
 exports.findOne = (req, res) => {
-    const id = req.params.id;
+    const id = req.params['id'];
 
     Users.findById(id)
         .then(data => {
@@ -120,7 +110,7 @@ exports.findOne = (req, res) => {
         });
 };
 
-// Find a single User with an id
+// Find a single User by their username
 exports.findUser = (req, res) => {
     const username = req.params.username;
     Users.findOne({username: username})

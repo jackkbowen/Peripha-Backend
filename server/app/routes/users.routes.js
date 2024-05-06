@@ -3,16 +3,24 @@ module.exports = app => {
 
   var router = require("express").Router();
 
-  // Returns login page (idk if we need this, just a placeholder. react router handles serving pages)
+  // Returns user page (idk if we need this, just a placeholder. react router handles serving pages)
   router.get('/', (req, res) => {
-    res.json({ message: "Welcome to Peripha Login Page." });
+    res.json({ message: "Welcome to Peripha Profile Page." });
   });
 
-  // Create a new User
-  router.post("/register", user.create);
-
+ 
   // Fetch user information by username
   router.get("/:username", user.findUser);
+
+  // Logout specific user with username
+  router.post("/:username/logout", function (req, res, done) {
+    req.logout(function(error) {
+      if (error) {
+        return done(error);
+      }
+      res.redirect("/login");
+    })
+  })
 
 
 
