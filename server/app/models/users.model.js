@@ -12,6 +12,19 @@ const userSchema = mongoose.Schema(
         required:true, 
         unique:true
       },
+      displayName: {
+        type: String, 
+        required:true, 
+      },
+      profilePicture: {
+        type: String, 
+        required:true, 
+        default: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Question_Mark.svg/1200px-Question_Mark.svg.png"
+      },
+      bio: {
+        type: String, 
+        default: ""
+      },
       hash: {
         type: String,
         required: true

@@ -25,7 +25,7 @@ const userSchema = mongoose.Schema(
         type: String,
         required: true
       },
-      reviews: {
+      reviews: {  
         type: [String],
         required: true
       },

@@ -36,8 +36,11 @@ exports.create = asyncHandler(async(req, res) => {
         email: req.body.email,
         username: req.body.username,
         hash: genHash,
+        profilePicture: "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
         salt: genSalt,
-        products: []
+        products: [],
+        displayName: req.body.username,
+        bio: ""
     });
 
     // Save User in the database
