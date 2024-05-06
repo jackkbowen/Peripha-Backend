@@ -1,24 +1,30 @@
-const passportLocalMongoose = require('passport-local-mongoose');
+const mongoose = require('mongoose')
 
-module.exports = mongoose => {
-  var schema = mongoose.Schema(
+const userSchema = mongoose.Schema(
     {
-      // No Password needed, User.register() will create a hashed password
-    
-      email: {type: String, required:true, unique:true},
-      username: {type: String, required:true, unique:true},
+      email: {
+        type: String,
+         required:true, 
+         unique:true
+      },
+      username: {
+        type: String, 
+        required:true, 
+        unique:true
+      },
+      hash: {
+        type: String,
+        required: true
+      },
+      salt: {
+        type: String,
+        required: true
+      },
+      
   },
   {timestamps: true}
 );
 
-  schema.method("toJSON", function() {
-    const { __v, _id, ...object } = this.toObject();
-    object.id = _id;
-    return object;
-  });
 
-  schema.plugin(passportLocalMongoose);
+module.exports = mongoose.model('User', userSchema);
 
-  const Users = mongoose.model("users", schema);
-  return Users;
-};
