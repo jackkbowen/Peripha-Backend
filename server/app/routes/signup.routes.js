@@ -11,7 +11,6 @@ module.exports = app => {
     // Create a new User
     router.post("/", user.create);
 
-
     app.use("/signup", router);
 };
   
