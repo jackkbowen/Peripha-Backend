@@ -36,7 +36,11 @@ exports.create = asyncHandler(async(req, res) => {
         email: req.body.email,
         username: req.body.username,
         hash: genHash,
-        salt: genSalt
+        profilePicture: "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg",
+        salt: genSalt,
+        products: [],
+        displayName: req.body.username,
+        bio: ""
     });
 
     // Save User in the database
@@ -56,7 +60,7 @@ exports.create = asyncHandler(async(req, res) => {
 });
 
 // Retrieve all Users from the database.
-exports.findAll = (req, res) => {
+exports.findAllUsers = (req, res) => {
     const email = req.query.email;
     var condition = email ? { email: { $regex: new RegExp(email), $options: "i" } } : {};
 
@@ -73,37 +77,15 @@ exports.findAll = (req, res) => {
         });
 };
 
-// Check if email and password exists in the database
-exports.checkInformation = (req, res) => {
 
-    const query = Users.find({email: req.params['email']});
-    query.getFilter();
-
-    const results = query.exec();
-
-    res.status(200).send(req.params['email']);
-    return;
-};
-
-exports.checkCredentials = (req, res) => {
-    const email = req.body.email;
-    const username = req.body.username;
-    const password = req.body.password;
-
-    res.status(200).send(({
-        message: email + username + password}));
-    return;
-}
-
-// Find a single User with an id
-exports.findOne = (req, res) => {
-    const id = req.params.id;
-
-    Users.findById(id)
+// Find a single User by their username
+exports.findUser = (req, res) => {
+    const username = req.params.username;
+    Users.findOne({username: username})
         .then(data => {
             if (!data) {
                 res.status(404).send({ 
-                    message: "Not found Users with id " + id });
+                    message: "Not found Users with id " + username });
                 return;
             }
             else res.status(200).send(data);;
@@ -111,7 +93,7 @@ exports.findOne = (req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message: "Error retrieving Users with id=" + id });
+                message: "Error retrieving Users with username=" + username });
             return;
         });
 };
@@ -140,3 +122,41 @@ exports.delete = (req, res) => {
             return;
         });
 };
+
+// Update a User 
+exports.updateUser = (req, res) => {
+    const username = req.params.username;
+
+    // Find first instance of username (username is unique, only 1 will be found)
+    Users.updateOne( { username: username }, 
+        {
+            $set: {
+                // Checks if user did not input a change, ignores field if empty
+                $where: function() {
+                    if (req.body.email !== "") this.email = req.body.email;
+                    if (req.body.username !== "") this.username = req.body.username;
+                    if (req.body.displayName !== "") this.displayName = req.body.displayName;
+                    if (req.body.profilePicture !== "") this.profilePicture = req.body.profilePicture;
+                    if (req.body.bio !== "") this.bio = req.body.bio;
+                    
+                    return true;
+                }
+            },  
+            $currentDate: { lastModified: true }
+        }
+    ).catch (err => {
+        return res.status(304).send({ message: err.message || "Error occurred while editing User." });
+        
+    });
+    return res.send(200).send({ message: req.params.username + " successfully updated."})
+}
+
+// Logout a User
+exports.logoutUser = (req, res) => {
+    req.logout(function(error) {
+        if (error) {
+            return done(error);
+        }
+        res.redirect("/login");
+    })
+}

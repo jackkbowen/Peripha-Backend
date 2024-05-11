@@ -4,14 +4,13 @@ module.exports = app => {
     var router = require("express").Router();
   
     // Retrieve all Users
-    router.get("/", user.findAll);
+    router.get("/", user.findAllUsers);
   
     // Retrieve a single User with email
-    router.get("/:email", user.checkInformation);
+    router.get("/:username", user.findUser);
   
     // Delete a Tutorial with id
     router.delete("/:id", user.delete);
     
-  
     app.use("/admin", router);
 };
