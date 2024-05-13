@@ -1,5 +1,27 @@
 const mongoose = require('mongoose');
 
+const reviewSchema = mongoose.Schema(
+    {
+        reviewType: {
+            type: String,
+            required: true
+        },
+        username: {
+            type: String,
+            required: true
+        },
+        reviewContent: {
+            type: String,
+            required: true
+        },
+        rating: {
+            type: Number,
+            required: true
+        }
+    },
+    {timestamps: true}
+);
+
 const userSchema = mongoose.Schema(
     {
         name: {

@@ -150,7 +150,7 @@ exports.updateUser = (req, res) => {
         
     });
     return res.send(200).send({ message: req.params.username + " successfully updated."})
-}
+};
 
 exports.addProduct = asyncHandler(async(req, res) => {
     const user = await Users.findOne({username: req.params.username});
@@ -186,4 +186,4 @@ exports.logoutUser = (req, res) => {
         }
         res.redirect("/login");
     })
-}
+};

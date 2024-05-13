@@ -101,3 +101,24 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
 
     
 });
+
+exports.addReview = (req, res) => {
+    const productId = req.params.productId;
+    
+    Products.updateMany( { _id: productId }, 
+        {
+            $set: {
+                'reviews.$.reviewType': req.body.reviewType,
+                'reviews.$.username': req.body.username,
+                'reviews.$.reviewContent': req.body.reviewContent,
+                'reviews.$.rating': req.body.rating
+            },  
+            $currentDate: { lastModified: true }
+        },
+        { upsert: true}
+    ).catch (err => {
+        return res.status(400).send({ message: "Error occurred while adding a review to product: " + productId + " Error: " + err });
+            
+    });
+    return 
+};
