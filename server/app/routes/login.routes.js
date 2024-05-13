@@ -13,7 +13,8 @@ module.exports = app => {
     // Take login information and autenticate user
     router.post("/", isUserLoggedIn, passport.authenticate('local', {
         failureRedirect: '/login',
-        failureMessage: true
+        failureMessage: true,
+        session: true
         }), function(req, res) {
             res.redirect('/user/' + req.body.username);
         });
