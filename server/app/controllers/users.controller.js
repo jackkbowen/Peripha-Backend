@@ -149,7 +149,7 @@ exports.updateUser = (req, res) => {
         
     });
     return res.send(200).send({ message: req.params.username + " successfully updated."})
-}
+};
 
 // Logout a User
 exports.logoutUser = (req, res) => {
@@ -159,4 +159,4 @@ exports.logoutUser = (req, res) => {
         }
         res.redirect("/login");
     })
-}
+};
