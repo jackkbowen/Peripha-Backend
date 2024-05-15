@@ -1,6 +1,8 @@
 const Products = require("../models/products.model");
+const Reviews = require("../models/reviews.model");
 const Users = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
+const mongoose = require('mongoose');
 
 exports.create = asyncHandler(async(req, res) => {
     // Validate request
@@ -103,22 +105,23 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
 });
 
 exports.addReview = (req, res) => {
-    const productId = req.params.productId;
+    const productId = mongoose.Types.ObjectId(req.params.productId);
+
+    const newReview = new Reviews({
+        reviewType: req.body.reviewType,
+        username: req.body.username,
+        reviewContent: req.body.reviewContent,
+        rating: req.body.rating
+    });
     
     Products.updateMany( { _id: productId }, 
         {
-            $set: {
-                'reviews.$.reviewType': req.body.reviewType,
-                'reviews.$.username': req.body.username,
-                'reviews.$.reviewContent': req.body.reviewContent,
-                'reviews.$.rating': req.body.rating
-            },  
+            $push: {reviews: newReview },
             $currentDate: { lastModified: true }
         },
-        { upsert: true}
     ).catch (err => {
         return res.status(400).send({ message: "Error occurred while adding a review to product: " + productId + " Error: " + err });
             
     });
-    return 
+    return res.status(200).send({ message: "Review successfully added"});
 };
