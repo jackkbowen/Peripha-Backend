@@ -1,28 +1,7 @@
 const mongoose = require('mongoose');
 
-const reviewSchema = mongoose.Schema(
-    {
-        reviewType: {
-            type: String,
-            required: true
-        },
-        username: {
-            type: String,
-            required: true
-        },
-        reviewContent: {
-            type: String,
-            required: true
-        },
-        rating: {
-            type: Number,
-            required: true
-        }
-    },
-    {timestamps: true}
-);
 
-const userSchema = mongoose.Schema(
+const productSchema = mongoose.Schema(
     {
         name: {
             type: String,
@@ -48,22 +27,8 @@ const userSchema = mongoose.Schema(
             required: true
         },
         reviews: [{
-            reviewType: {
-                type: String,
-                required: true
-            },
-            username: {
-                type: String,
-                required: true
-            },
-            reviewContent: {
-                type: String,
-                required: true
-            },
-            rating: {
-                type: Number,
-                required: true
-            }
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Review'
         }],
         image: {
             type: String,
@@ -71,7 +36,7 @@ const userSchema = mongoose.Schema(
             default: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Question_Mark.svg/1200px-Question_Mark.svg.png"
         }
     },
-    { timestamps: true }
+    { timestamps: true, upsert: true }
 );
 
-module.exports = mongoose.model('Product', userSchema);
+module.exports = mongoose.model('Product', productSchema);
