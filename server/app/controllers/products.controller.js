@@ -1,5 +1,4 @@
 const Products = require("../models/products.model");
-const Reviews = require("../models/reviews.model");
 const Users = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
 const mongoose = require('mongoose');
@@ -28,6 +27,7 @@ exports.create = asyncHandler(async(req, res) => {
         category: req.body.category,
         manufacturer: req.body.manufacturer,
         model: req.body.model,
+        image: req.body.image,
         reviews: [],
         specs: req.body.specs
     });
@@ -41,15 +41,14 @@ exports.create = asyncHandler(async(req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message:
-                    err.message || "Some error occurred while creating the Product."
+                message: "Some error occurred while creating the Product."
             });
             return
         });
 });
 
 // Find a single product with an id
-exports.findOne = (req, res) => {
+exports.findOne = asyncHandler(async(req, res) => {
     const id = req.params.productId;
 
     Products.findById(id)
@@ -67,7 +66,7 @@ exports.findOne = (req, res) => {
                 message: "Error retrieving Product with id=" + id });
             return;
         });
-};
+});
 
 exports.findUserProducts = asyncHandler(async(req, res) => {
     const username = req.params.username;
@@ -103,24 +102,3 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
     
 });
 
-exports.addReview = (req, res) => {
-    const productId = mongoose.Types.ObjectId(req.params.productId);
-
-    const newReview = new Reviews({
-        reviewType: req.body.reviewType,
-        username: req.body.username,
-        reviewContent: req.body.reviewContent,
-        rating: req.body.rating
-    });
-    
-    Products.updateMany( { _id: productId }, 
-        {
-            $push: {reviews: newReview },
-            $currentDate: { lastModified: true }
-        },
-    ).catch (err => {
-        return res.status(400).send({ message: "Error occurred while adding a review to product: " + productId + " Error: " + err });
-            
-    });
-    return res.status(200).send({ message: "Review successfully added"});
-};
