@@ -25,26 +25,10 @@ const userSchema = mongoose.Schema(
             type: String,
             required: true
         },
-        reviews: {
-            type: {
-                reviewType: {
-                    type: String,
-                    required: true
-                },
-                username: {
-                    type: String,
-                    required: true
-                },
-                reviewContent: {
-                    type: String,
-                    required: true
-                },
-                rating: {
-                    type: Number,
-                    required: true
-                }
-            }
-        },
+        reviews: [{
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Review'
+      }],
         image: {
             type: String,
             required: true,

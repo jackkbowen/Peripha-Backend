@@ -17,6 +17,9 @@ module.exports = app => {
   
     // Edit user info (user needs to be logged in before they are able to edit)
     router.put("/:username/edit", isUserPermitted, user.updateUser);
+
+    // Add Product to User
+   router.post("/:username/addProduct/:productId", user.addProduct);
   
     app.use("/user", router);
 };
