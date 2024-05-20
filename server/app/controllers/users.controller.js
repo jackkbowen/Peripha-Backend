@@ -177,6 +177,7 @@ exports.addProduct = asyncHandler(async(req, res) => {
 
 });
 
+
 // Logout a User
 exports.logoutUser = (req, res) => {
     req.logout(function(error) {

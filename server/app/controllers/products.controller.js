@@ -98,7 +98,5 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
                 message: "Error retrieving Users with username=" + username });
             return;
         });
-
-    
 });
 

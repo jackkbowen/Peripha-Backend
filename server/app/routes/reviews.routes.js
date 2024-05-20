@@ -15,6 +15,9 @@ module.exports = app => {
     // Get the contents of a review
     router.get("/:reviewId/", reviews.findReview);
 
+    // Get all reviews of a product
+    router.get("/productId/:productId/", reviews.getAllReviews);
+
     app.use("/reviews", router);
 };
     

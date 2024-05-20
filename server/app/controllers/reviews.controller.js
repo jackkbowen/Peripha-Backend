@@ -128,3 +128,36 @@ exports.findReview = asyncHandler(async(req, res) => {
         });
 });
 
+// Retrieve all reviews
+exports.getAllReviews = asyncHandler(async(req, res) => {
+    const productId = req.params.productId;
+    let reviews = [];
+    await Products.findById(productId)
+        .then(data => {
+            if (!data) {
+                res.status(404).send({ 
+                    message: "No Product with id " + productId });
+                return;
+            }
+            reviews = data.reviews;
+            Reviews.find({
+                '_id': {
+                    $in : reviews
+                }
+            }).then(data => {
+                res.status(200).send(data);
+                return;
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message: "Error retrieving Reviews from product " + productId });
+                return;
+            });
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error retrieving product with Id" + productId });
+            return;
+        });
+});
+
