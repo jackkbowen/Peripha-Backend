@@ -26,6 +26,7 @@ exports.create = asyncHandler(async(req, res) => {
         category: req.body.category,
         manufacturer: req.body.manufacturer,
         model: req.body.model,
+        image: req.body.image,
         reviews: [],
         specs: req.body.specs
     });
