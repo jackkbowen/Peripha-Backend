@@ -53,8 +53,7 @@ exports.create = asyncHandler(async(req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message:
-                    err.message || "Some error occurred while creating the Users."
+                message: "Some error occurred while creating the Users."
             });
             return
         });
@@ -72,7 +71,7 @@ exports.findAllUsers = (req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message: err.message || "Some error occurred while retrieving Users."
+                message: "Some error occurred while retrieving Users."
             });
             return;
         });

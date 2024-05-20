@@ -9,9 +9,6 @@ module.exports = app => {
     // Get a product by product ID
     router.get("/:productId", product.findOne);
 
-    // Add a review to a product
-    router.put("/:productId", product.addReview);
-
     // Get multiple products based off of username
     router.get("/user/:username", product.findUserProducts);
 
