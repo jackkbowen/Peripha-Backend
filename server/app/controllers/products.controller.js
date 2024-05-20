@@ -27,7 +27,8 @@ exports.create = asyncHandler(async(req, res) => {
         manufacturer: req.body.manufacturer,
         model: req.body.model,
         reviews: [],
-        specs: req.body.specs
+        specs: req.body.specs,
+        image: req.body.image
     });
 
     // Save Product in the database

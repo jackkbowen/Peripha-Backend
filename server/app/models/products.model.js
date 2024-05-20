@@ -15,7 +15,6 @@ const userSchema = mongoose.Schema(
       category: {
         type: String, 
         required:true, 
-        unique:true
       },
       manufacturer: {
         type: String,
@@ -25,10 +24,10 @@ const userSchema = mongoose.Schema(
         type: String,
         required: true
       },
-      reviews: {  
-        type: [String],
-        required: true
-      },
+      reviews: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Review'
+    }],
       image: {
         type: String,
         required: true,

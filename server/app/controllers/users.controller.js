@@ -1,5 +1,6 @@
 const genPassword = require('../utils/password').genPassword;
 const Users = require("../models/users.model");
+const Products = require("../models/products.model");
 const asyncHandler = require('express-async-handler')
 
 // Create and Save a new Users
@@ -139,6 +140,32 @@ exports.findUser = (req, res) => {
             return;
         });
 };
+
+exports.addProduct = asyncHandler(async(req, res) => {
+    const user = await Users.findOne({username: req.params.username});
+    if(!user) {
+        res.status(404).send({ 
+            message: "Not found Users with id " + username });
+        return;
+    }
+
+    user.products.push(req.params.productId);
+    user
+        .save(user)
+        .then(data => {
+            res.status(200).send(data);
+            return;
+        })
+        .catch(err => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while creating the Users."
+            });
+            return
+        });
+
+
+});
 
 // Delete a User with the specified id in the request
 exports.delete = (req, res) => {

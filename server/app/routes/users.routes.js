@@ -14,6 +14,9 @@ module.exports = app => {
   // Fetch user information by username
   router.get("/:username", user.findUser);
 
+   // Add Product to User
+   router.post("/:username/addProduct/:productId", user.addProduct);
+
 
 
   app.use("/user", router);
