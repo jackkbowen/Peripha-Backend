@@ -1,7 +1,7 @@
-const genPassword = require('../utils/password').genPassword;
-const Users = require("../models/users.model");
-const Products = require("../models/products.model");
+const User = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
+const jwt = require("jsonwebtoken"); 
+const { validPassword, genPassword } = require('../utils/password');
 
 // Create and Save a new Users
 exports.create = asyncHandler(async(req, res) => {
@@ -18,10 +18,10 @@ exports.create = asyncHandler(async(req, res) => {
     } 
 
     // Check for existing user
-    const userExists = await Users.findOne({$or: [{ email: req.body.email }, { username: req.body.username }]});
+    const userExists = await User.findOne({$or: [{ email: req.body.email }, { username: req.body.username }]});
     //console.log(userExists);
         if (userExists) {
-            res.status(409).send({message: "ERROR: User already exists. Please use a different username/password.", 
+            res.status(409).send({message: "ERROR: User already exists. Please use a different email or username.", 
                                 email: req.body.email});
             return;
         }
@@ -33,7 +33,7 @@ exports.create = asyncHandler(async(req, res) => {
 
 
     // Create a new User
-    const user = new Users({
+    const user = new User({
         email: req.body.email,
         username: req.body.username,
         hash: genHash,
@@ -41,8 +41,13 @@ exports.create = asyncHandler(async(req, res) => {
         salt: genSalt,
         products: [],
         displayName: req.body.username,
-        bio: ""
+        bio: "",
+        token: ""
     });
+
+    console.log(process.env);
+    // Generate token for user
+    user.token = jwt.sign( {id: user._id}, "secret", {expiresIn: "14d"})
 
     // Save User in the database
     user
@@ -64,7 +69,7 @@ exports.findAllUsers = (req, res) => {
     const email = req.query.email;
     var condition = email ? { email: { $regex: new RegExp(email), $options: "i" } } : {};
 
-    Users.find(condition)
+    User.find(condition)
         .then(data => {
             res.status(200).send(data);
             return;
@@ -81,7 +86,7 @@ exports.findAllUsers = (req, res) => {
 // Find a single User by their username
 exports.findUser = (req, res) => {
     const username = req.params.username;
-    Users.findOne({username: username})
+    User.findOne({username: username})
         .then(data => {
             if (!data) {
                 res.status(404).send({ 
@@ -102,7 +107,7 @@ exports.findUser = (req, res) => {
 exports.delete = (req, res) => {
     const id = req.params.id;
 
-    Users.findByIdAndRemove(id, { useFindAndModify: false })
+    User.findByIdAndRemove(id, { useFindAndModify: false })
         .then(data => {
             if (!data) {
                 res.status(404).send({
@@ -126,9 +131,10 @@ exports.delete = (req, res) => {
 // Update a User 
 exports.updateUser = (req, res) => {
     const username = req.params.username;
+    console.log(req.params.username);
 
     // Find first instance of username (username is unique, only 1 will be found)
-    Users.updateOne( { username: username }, 
+    User.updateOne( { username: username }, 
         {
             $set: {
                 // Checks if user did not input a change, ignores field if empty
@@ -152,7 +158,7 @@ exports.updateUser = (req, res) => {
 };
 
 exports.addProduct = asyncHandler(async(req, res) => {
-    const user = await Users.findOne({username: req.params.username});
+    const user = await User.findOne({username: req.params.username});
     if(!user) {
         res.status(404).send({ 
             message: "Not found Users with id " + username });
@@ -184,6 +190,39 @@ exports.logoutUser = (req, res) => {
         if (error) {
             return done(error);
         }
+        //res.send(200).status({ message: "User successfully logged out." });
         res.redirect("/login");
     })
 };
+
+exports.loginUser = asyncHandler(async (req, res) => {
+    //console.log("Testing before verify");
+    
+    // Verify the JWT before logging in the user
+    let isValid = true;
+    let userToVerify = await User.findOne({username: req.body.username})
+    // No user registered with inputted email.
+    if (!userToVerify) { 
+        isValid = false
+    }
+
+    // Check if the password is valid
+    isValid = validPassword(req.body.password, userToVerify.hash, userToVerify.salt);
+    
+    // If the password is not valid, return a 403 forbidden error
+    if (!isValid) {
+        res.status(403).send( {message: "Invalid username or password, could not authorize user. Please log in and try again."} );
+    } 
+    // If the password is valid, save the user and generate a token
+    else {
+        userToVerify.save();
+        jwt.sign( {id: req.body._id}, "secret", {expiresIn: "14d"}, (err, token) => {
+            if (err) {
+                console.log(err);
+            }
+            //res.cookie( {'token' : token})
+            res.status(200).send( {message: "User authorized: ", token} );
+        });
+        
+    }
+});

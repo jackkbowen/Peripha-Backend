@@ -1,7 +1,5 @@
 const express = require("express");
-const session = require('express-session')
-const passport = require("passport")
-require('./app/utils/auth');
+const passport = require("passport");
 const cors = require("cors");
 
 const app = express();
@@ -19,7 +17,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Connect to the Database
-const db = require("./app/models");
+const db = require("./app/utils");
 const dbConfig = require("./app/config/db.config");
 db.mongoose
   .connect(db.url, {
@@ -33,29 +31,6 @@ db.mongoose
     console.log("Cannot connect to the database!", err);
     process.exit();
   });
-
-
-app.use(
-  // cookie basic settings
-  session({
-      secret: 'somevalue',
-      name: 'session-id',
-      cookie: {
-          maxAge: 1000 * 60 * 60 * 24, // 24 hours (mili, sec, min, hour)
-          sameSite: true,
-
-          // to turn on just in production
-          secure: false, 
-          httpOnly: false 
-      },
-      resave: false,
-      saveUninitialized: true,
-  })
-)
-
-// Passport initizilaization for resource authorization.
-app.use(passport.initialize());
-app.use(passport.session());
 
 
 // Landing page route
