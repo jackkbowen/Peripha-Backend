@@ -15,7 +15,7 @@ module.exports = app => {
     router.post("/:username/logout", user.logoutUser);
   
     // Edit user info (user needs to be logged in before they are able to edit)
-    router.put("/:username/edit", checkToken, user.updateUser);
+    router.put("/:username/edit", user.updateUser);
 
     // Add Product to User
    router.post("/:username/addProduct/:productId", user.addProduct);

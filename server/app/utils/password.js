@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const User = require("../models/users.model");
+const jwt = require("jsonwebtoken"); 
 
 function genPassword(password) {
     const salt = crypto.randomBytes(32).toString('hex');
@@ -36,8 +37,8 @@ function verifyUser (username, password) {
 };
 
 function checkToken(req, res) {
-    const tokenBody = req.body.token;
-    console.log(tokenBody);
+    const tokenBody = req.headers['Authorization'];
+    console.log("checkToken - tokenBody: " + tokenBody);
 
     if(typeof tokenBody !== 'undefined') {
         const bearer = tokenBody.split(' ');
@@ -47,15 +48,43 @@ function checkToken(req, res) {
         
     } else {
         //If header is undefined return Forbidden (403)
-        res.sendStatus(403)
+        res.status(403).send( { message: 'Error authenticating token, please log in'} );
     }
 }
 
+async function verifyUserAccess(authToken, res) {
+    console.log("verifyUserAccess - authToken: " + authToken);
+
+    if (!authToken) {
+        res.status(403).send({ message: 'No Auth Token - You are not authorized to access this page. Please log in.' });
+        return;
+    } else {
+        try {
+            const user = await new Promise((resolve, reject) => {
+                jwt.verify(authToken, 'secret', (err, decoded) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(decoded);
+                    }
+                });
+            });
+
+            console.log("verifyUserAccess - user: " + user.id);
+            return user.id; // Return the user ID if needed
+        } catch (err) {
+            console.log(err);
+            res.status(403).send({ message: 'Verify Failure', error: err });
+            return; 
+        }
+    }
+}
 
 
 module.exports.validPassword = validPassword;
 module.exports.genPassword = genPassword;
 module.exports.verifyUser = verifyUser;
 module.exports.checkToken = checkToken;
+module.exports.verifyUserAccess = verifyUserAccess;
 
 

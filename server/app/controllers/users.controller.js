@@ -1,7 +1,8 @@
 const User = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
 const jwt = require("jsonwebtoken"); 
-const { validPassword, genPassword } = require('../utils/password');
+const mongoose = require('mongoose');
+const { validPassword, genPassword, verifyUserAccess } = require('../utils/password');
 
 // Create and Save a new Users
 exports.create = asyncHandler(async(req, res) => {
@@ -30,7 +31,6 @@ exports.create = asyncHandler(async(req, res) => {
     const saltHash = genPassword(String(req.body.password));
     const genSalt = saltHash.salt;
     const genHash = saltHash.hash;
-
 
     // Create a new User
     const user = new User({
@@ -131,7 +131,11 @@ exports.delete = (req, res) => {
 // Update a User 
 exports.updateUser = (req, res) => {
     const username = req.params.username;
-    console.log(req.params.username);
+    const authToken = req.headers['authorization'];
+    console.log("UpdateUser - username: " + req.params.username);
+
+    currentUser = verifyUserAccess(authToken);
+    console.log("UpdateUser - currentUser: " + currentUser);
 
     // Find first instance of username (username is unique, only 1 will be found)
     User.updateOne( { username: username }, 
@@ -151,10 +155,9 @@ exports.updateUser = (req, res) => {
             $currentDate: { lastModified: true }
         }
     ).catch (err => {
-        return res.status(304).send({ message: err.message || "Error occurred while editing User." });
+        res.status(304).send({ message: err.message || "Error occurred while editing User." });
         
     });
-    return res.send(200).send({ message: req.params.username + " successfully updated."})
 };
 
 exports.addProduct = asyncHandler(async(req, res) => {
@@ -186,43 +189,43 @@ exports.addProduct = asyncHandler(async(req, res) => {
 
 // Logout a User
 exports.logoutUser = (req, res) => {
-    req.logout(function(error) {
-        if (error) {
-            return done(error);
-        }
-        //res.send(200).status({ message: "User successfully logged out." });
-        res.redirect("/login");
-    })
+    
 };
 
 exports.loginUser = asyncHandler(async (req, res) => {
-    //console.log("Testing before verify");
+    console.log("Testing before verify");
     
-    // Verify the JWT before logging in the user
-    let isValid = true;
     let userToVerify = await User.findOne({username: req.body.username})
-    // No user registered with inputted email.
-    if (!userToVerify) { 
-        isValid = false
-    }
-
-    // Check if the password is valid
-    isValid = validPassword(req.body.password, userToVerify.hash, userToVerify.salt);
-    
-    // If the password is not valid, return a 403 forbidden error
-    if (!isValid) {
-        res.status(403).send( {message: "Invalid username or password, could not authorize user. Please log in and try again."} );
-    } 
-    // If the password is valid, save the user and generate a token
-    else {
-        userToVerify.save();
-        jwt.sign( {id: req.body._id}, "secret", {expiresIn: "14d"}, (err, token) => {
-            if (err) {
-                console.log(err);
-            }
-            //res.cookie( {'token' : token})
-            res.status(200).send( {message: "User authorized: ", token} );
-        });
+    // No user registered with inputed email.
+    if (!userToVerify) {
+        res.status(403).send( {message: "Invalid username, could not authorize user. Please log in and try again."} );
+    } else { 
+        console.log("Testing after verify");
+        // Check if the password is valid
+        let isValid = validPassword(req.body.password, userToVerify.hash, userToVerify.salt);
         
-    }
+        // If the password is not valid, return a 403 forbidden error
+        if (!isValid) {
+            res.status(403).send( {message: "Invalid password, could not authorize user. Please log in and try again."} );
+        } 
+        // If the password is valid, save the user and generate a token
+        // Verify the JWT before logging in the user
+        try {
+            await userToVerify.save();
+            console.log("User authorized: ",  mongoose.Types.ObjectId(userToVerify._id));
+            
+            jwt.sign({ id:  mongoose.Types.ObjectId(userToVerify._id) }, "secret", { expiresIn: "14d" }, (err, token) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send({ message: "Failed to generate token" });
+                }
+                console.log("User authorized: ", token);
+                res.set("Authorization", token);
+                res.status(200).send({ message: "User authorized", token });
+            });
+        } catch (saveError) {
+            console.log(saveError);
+            res.status(500).send({ message: "Failed to save user" });
+        }
+    } 
 });
