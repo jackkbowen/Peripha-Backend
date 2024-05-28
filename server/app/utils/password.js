@@ -1,6 +1,8 @@
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 const User = require("../models/users.model");
 const jwt = require("jsonwebtoken"); 
+const userController = require("../controllers/users.controller.js");
 
 function genPassword(password) {
     const salt = crypto.randomBytes(32).toString('hex');
@@ -52,8 +54,8 @@ function checkToken(req, res) {
     }
 }
 
-async function verifyUserAccess(authToken, res) {
-    console.log("verifyUserAccess - authToken: " + authToken);
+async function verifyJWT(authToken, req, res) {
+    console.log("verifyJWT - authToken: " + authToken);
 
     if (!authToken) {
         res.status(403).send({ message: 'No Auth Token - You are not authorized to access this page. Please log in.' });
@@ -70,14 +72,45 @@ async function verifyUserAccess(authToken, res) {
                 });
             });
 
-            console.log("verifyUserAccess - user: " + user.id);
-            return user.id; // Return the user ID if needed
+            userData = await User.findById(user.id);
+            if (!userData){
+                res.status(403).send({ message: "No ID found for the JWT token. Please log in again." });
+            }
+
+            console.log("verifyJWT - userID: " + user.id);
+            console.log("verifyJWT - username: " + userData.username);
+
+            console.log("verifyJWT - userData: " + userData);
+            return userData.username
         } catch (err) {
             console.log(err);
-            res.status(403).send({ message: 'Verify Failure', error: err });
+            res.status(403).send( { message: 'Verify JWT Failure', error: err } );
             return; 
         }
     }
+}
+
+function verifyUserAccess(req, res, done) {
+    const authToken = req.headers["authorization"];
+    const token = authToken.split(' ')[1];
+    console.log("Token verifyUserAccess: " + token);
+
+    verifyJWT(token, req, res).then((username) => {
+        console.log("After verifyJWT request - username: " + username)
+        console.log("After verifyJWT request - username: " + req.params.username)
+
+        var comparisonUsername = req.params.username ?? req.body.username;
+
+        if (username) {
+            if (comparisonUsername == username) {
+                console.log("Usernames match in verifyUserAccess, continue to next page")
+                done ();
+            }
+        }
+    }).catch(err => {
+            console.log(err);
+            res.status(500).send( {message: "Some error occurered in verifyUserAccess. Please try again."} );
+        });
 }
 
 
@@ -86,5 +119,6 @@ module.exports.genPassword = genPassword;
 module.exports.verifyUser = verifyUser;
 module.exports.checkToken = checkToken;
 module.exports.verifyUserAccess = verifyUserAccess;
+module.exports.verifyJWT = verifyJWT;
 
 

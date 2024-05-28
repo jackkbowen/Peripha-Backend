@@ -47,7 +47,7 @@ exports.create = asyncHandler(async(req, res) => {
 
     console.log(process.env);
     // Generate token for user
-    user.token = jwt.sign( {id: user._id}, "secret", {expiresIn: "14d"})
+    user.token = jwt.sign( {id: user._id, username: user.username}, "secret", {expiresIn: "7d"})
 
     // Save User in the database
     user
@@ -102,6 +102,7 @@ exports.findUser = (req, res) => {
             return;
         });
 };
+
 
 // Delete a User with the specified id in the request
 exports.delete = (req, res) => {
@@ -189,6 +190,7 @@ exports.addProduct = asyncHandler(async(req, res) => {
 
 // Logout a User
 exports.logoutUser = (req, res) => {
+    console.log("in logout");
     
 };
 
@@ -212,14 +214,14 @@ exports.loginUser = asyncHandler(async (req, res) => {
         // Verify the JWT before logging in the user
         try {
             await userToVerify.save();
-            console.log("User authorized: ",  mongoose.Types.ObjectId(userToVerify._id));
+            console.log("User authorized (before sign): ",  mongoose.Types.ObjectId(userToVerify._id));
             
-            jwt.sign({ id:  mongoose.Types.ObjectId(userToVerify._id) }, "secret", { expiresIn: "14d" }, (err, token) => {
+            jwt.sign({ id:  mongoose.Types.ObjectId(userToVerify._id) , username: req.body.username }, "secret", { expiresIn: "14d" }, (err, token) => {
                 if (err) {
                     console.log(err);
                     return res.status(500).send({ message: "Failed to generate token" });
                 }
-                console.log("User authorized: ", token);
+                console.log("User authorized (after sign): ", token);
                 res.set("Authorization", token);
                 res.status(200).send({ message: "User authorized", token });
             });

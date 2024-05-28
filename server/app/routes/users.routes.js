@@ -1,7 +1,7 @@
 module.exports = app => {
     const user = require("../controllers/users.controller.js");
     const router = require("express").Router();
-    const { checkToken } = require('../utils/password');
+    const { checkToken, verifyUserAccess } = require('../utils/password');
   
     // Returns user page (idk if we need this, just a placeholder. react router handles serving pages)
     router.get('/', (req, res) => {
@@ -12,13 +12,13 @@ module.exports = app => {
     router.get("/:username", user.findUser);
   
     // Logout specific user with username
-    router.post("/:username/logout", user.logoutUser);
+    router.post("/:username/logout", verifyUserAccess, user.logoutUser);
   
     // Edit user info (user needs to be logged in before they are able to edit)
-    router.put("/:username/edit", user.updateUser);
+    router.put("/:username/edit", verifyUserAccess, user.updateUser);
 
     // Add Product to User
-   router.post("/:username/addProduct/:productId", user.addProduct);
+   router.post("/:username/addProduct/:productId", verifyUserAccess, user.addProduct);
   
     app.use("/user", router);
 };
