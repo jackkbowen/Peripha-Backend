@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const User = require("../models/users.model");
+const Reviews = require("../models/reviews.model");
 const jwt = require("jsonwebtoken"); 
 const userController = require("../controllers/users.controller.js");
 
@@ -90,13 +91,46 @@ async function verifyJWT(authToken, req, res) {
     }
 }
 
+function verifyUserAccessAnyUser(req, res, done) {
+    // Extract the JWT token
+    const authToken = req.headers["authorization"];
+    const token = authToken.split(' ')[1];
+    console.log("Token verifyUserAccess: " + token);
+
+    verifyJWT(token, req, res).then(async(username) => {
+        console.log("After verifyJWT request - username: " + username)
+        console.log("After verifyJWT request - username: " + req.params.username)
+        req.params.username = username
+
+        if (username) {
+            console.log("Usernames match in verifyUserAccessAnyUser, continue to next page")
+            done ();
+        }
+        console.log("end of verifyUserAccessAnyUser")
+    }).catch(err => {
+            console.log(err);
+            res.status(500).send( {message: "Some error occurered in verifyUserAccessAnyUser. Please try again."} );
+        });
+}
+
 function verifyUserAccess(req, res, done) {
     const authToken = req.headers["authorization"];
     const token = authToken.split(' ')[1];
     console.log("Token verifyUserAccess: " + token);
 
-    verifyJWT(token, req, res).then((username) => {
+    verifyJWT(token, req, res).then(async(username) => {
         console.log("After verifyJWT request - username: " + username)
+
+        if ((!req.body.username) && (!req.params.username)) {
+            const reviewId = mongoose.Types.ObjectId(req.params.reviewId);
+            userData = await Reviews.findById(reviewId).select('username');
+            if (userData) {
+                req.params.username = userData.username;
+                console.log("Changing params username: " + userData.username);
+            }
+        }
+        
+
         console.log("After verifyJWT request - username: " + req.params.username)
 
         var comparisonUsername = req.params.username ?? req.body.username;
@@ -104,14 +138,17 @@ function verifyUserAccess(req, res, done) {
         if (username) {
             if (comparisonUsername == username) {
                 console.log("Usernames match in verifyUserAccess, continue to next page")
-                done ();
+                done();
+            }
+            else {
+                return res.status(403).send( {message: "You cannot access accounts that are not yours. Please log in."} ) 
             }
         }
-    }).catch(err => {
-            console.log(err);
-            res.status(500).send( {message: "Some error occurered in verifyUserAccess. Please try again."} );
-        });
+        console.log("end of verifyUserAccess")
+        res.status(202).send( { message: "Backend call with JWT auth successful."} );
+    })
 }
+
 
 
 module.exports.validPassword = validPassword;
@@ -119,6 +156,7 @@ module.exports.genPassword = genPassword;
 module.exports.verifyUser = verifyUser;
 module.exports.checkToken = checkToken;
 module.exports.verifyUserAccess = verifyUserAccess;
+module.exports.verifyUserAccessAnyUser = verifyUserAccessAnyUser;
 module.exports.verifyJWT = verifyJWT;
 
 

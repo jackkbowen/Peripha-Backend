@@ -2,7 +2,7 @@ const User = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
 const jwt = require("jsonwebtoken"); 
 const mongoose = require('mongoose');
-const { validPassword, genPassword, verifyUserAccess } = require('../utils/password');
+const { validPassword, genPassword } = require('../utils/password');
 
 // Create and Save a new Users
 exports.create = asyncHandler(async(req, res) => {
@@ -134,27 +134,28 @@ exports.updateUser = (req, res) => {
     const username = req.params.username;
     const authToken = req.headers['authorization'];
     console.log("UpdateUser - username: " + req.params.username);
+   
+    // new model to update the existing 
+    let updateFields = {};
+    if (req.body.email !== "") updateFields.email = req.body.email;
+    if (req.body.username !== "") updateFields.username = req.body.username;
+    if (req.body.displayName !== "") updateFields.displayName = req.body.displayName;
+    if (req.body.profilePicture !== "") updateFields.profilePicture = req.body.profilePicture;
+    if (req.body.bio !== "") updateFields.bio = req.body.bio;
+    if (req.body.password !== "") {
+        const saltHash = genPassword(String(req.body.password));
+        updateFields.salt = saltHash.salt;
+        updateFields.hash = saltHash.hash;
 
-    currentUser = verifyUserAccess(authToken);
-    console.log("UpdateUser - currentUser: " + currentUser);
+    }
 
-    // Find first instance of username (username is unique, only 1 will be found)
-    User.updateOne( { username: username }, 
-        {
-            $set: {
-                // Checks if user did not input a change, ignores field if empty
-                $where: function() {
-                    if (req.body.email !== "") this.email = req.body.email;
-                    if (req.body.username !== "") this.username = req.body.username;
-                    if (req.body.displayName !== "") this.displayName = req.body.displayName;
-                    if (req.body.profilePicture !== "") this.profilePicture = req.body.profilePicture;
-                    if (req.body.bio !== "") this.bio = req.body.bio;
-                    
-                    return true;
-                }
-            },  
-            $currentDate: { lastModified: true }
-        }
+    // Add the last modified timestamp
+    updateFields.lastModified = new Date();
+
+    // Perform the update operation
+    User.updateOne(
+        { username: username }, 
+        { $set: updateFields }
     ).catch (err => {
         res.status(304).send({ message: err.message || "Error occurred while editing User." });
         

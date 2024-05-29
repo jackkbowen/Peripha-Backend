@@ -1,9 +1,10 @@
 module.exports = app => {
     const product = require("../controllers/products.controller.js");
     const router = require("express").Router();
+    const { verifyUserAccessAnyUser, verifyUserAccess } = require('../utils/password');
 
     // Create a new Product
-    router.post("/", product.create);
+    router.post("/", verifyUserAccessAnyUser, product.create);
 
     // Get a product by product ID
     router.get("/:productId", product.findOne);

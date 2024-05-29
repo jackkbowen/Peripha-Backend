@@ -9,9 +9,11 @@ exports.addReview = asyncHandler(async(req, res) => {
     const productId = mongoose.Types.ObjectId(req.params.productId);
 
     // Create a new Review object
+    // req.params.username is being set from verifyUserAccessAnyUser.
+    // Takes the username from the currently signed in user.
     const newReview = new Reviews({
         reviewType: req.body.reviewType,
-        username: req.body.username,
+        username: req.params.username,
         reviewContent: req.body.reviewContent,
         rating: req.body.rating
     });
@@ -25,7 +27,7 @@ exports.addReview = asyncHandler(async(req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message: "Some error occurred while creating the Review."
+                message: "Some error occurred while creating the Review." + err
             });
             return
         });
@@ -51,6 +53,8 @@ exports.deleteReview = asyncHandler(async(req, res) => {
     const reviewId = mongoose.Types.ObjectId(req.params.reviewId);
     const productId = mongoose.Types.ObjectId(req.params.productId);
 
+    userData = await Reviews.findById(reviewId);
+
     // Delete the review from the reviews Database
     Reviews.findByIdAndDelete(reviewId)
         .then(review => {
@@ -66,7 +70,7 @@ exports.deleteReview = asyncHandler(async(req, res) => {
                 { $pull: { reviews: reviewId } }
             );
 
-            return res.status(200).send({ message: "Review deleted successfully!" });
+            res.status(200).send({ message: "Review deleted successfully!" });
         })
         .catch(err => {
             res.status(500).send({
