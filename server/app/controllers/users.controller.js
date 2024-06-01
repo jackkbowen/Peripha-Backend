@@ -1,7 +1,8 @@
-const genPassword = require('../utils/password').genPassword;
-const Users = require("../models/users.model");
-const Products = require("../models/products.model");
+const User = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
+const jwt = require("jsonwebtoken"); 
+const mongoose = require('mongoose');
+const { validPassword, genPassword } = require('../utils/password');
 
 // Create and Save a new Users
 exports.create = asyncHandler(async(req, res) => {
@@ -18,10 +19,10 @@ exports.create = asyncHandler(async(req, res) => {
     } 
 
     // Check for existing user
-    const userExists = await Users.findOne({$or: [{ email: req.body.email }, { username: req.body.username }]});
+    const userExists = await User.findOne({$or: [{ email: req.body.email }, { username: req.body.username }]});
     //console.log(userExists);
         if (userExists) {
-            res.status(409).send({message: "ERROR: User already exists. Please use a different username/password.", 
+            res.status(409).send({message: "ERROR: User already exists. Please use a different email or username.", 
                                 email: req.body.email});
             return;
         }
@@ -31,9 +32,8 @@ exports.create = asyncHandler(async(req, res) => {
     const genSalt = saltHash.salt;
     const genHash = saltHash.hash;
 
-
     // Create a new User
-    const user = new Users({
+    const user = new User({
         email: req.body.email,
         username: req.body.username,
         hash: genHash,
@@ -41,8 +41,13 @@ exports.create = asyncHandler(async(req, res) => {
         salt: genSalt,
         products: [],
         displayName: req.body.username,
-        bio: ""
+        bio: "",
+        token: ""
     });
+
+    console.log(process.env);
+    // Generate token for user
+    user.token = jwt.sign( {id: user._id, username: user.username}, "secret", {expiresIn: "7d"})
 
     // Save User in the database
     user
@@ -53,8 +58,7 @@ exports.create = asyncHandler(async(req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message:
-                    err.message || "Some error occurred while creating the Users."
+                message: "Some error occurred while creating the Users."
             });
             return
         });
@@ -65,14 +69,14 @@ exports.findAllUsers = (req, res) => {
     const email = req.query.email;
     var condition = email ? { email: { $regex: new RegExp(email), $options: "i" } } : {};
 
-    Users.find(condition)
+    User.find(condition)
         .then(data => {
             res.status(200).send(data);
             return;
         })
         .catch(err => {
             res.status(500).send({
-                message: err.message || "Some error occurred while retrieving Users."
+                message: "Some error occurred while retrieving Users."
             });
             return;
         });
@@ -82,7 +86,7 @@ exports.findAllUsers = (req, res) => {
 // Find a single User by their username
 exports.findUser = (req, res) => {
     const username = req.params.username;
-    Users.findOne({username: username})
+    User.findOne({username: username})
         .then(data => {
             if (!data) {
                 res.status(404).send({ 
@@ -99,11 +103,12 @@ exports.findUser = (req, res) => {
         });
 };
 
+
 // Delete a User with the specified id in the request
 exports.delete = (req, res) => {
     const id = req.params.id;
 
-    Users.findByIdAndRemove(id, { useFindAndModify: false })
+    User.findByIdAndRemove(id, { useFindAndModify: false })
         .then(data => {
             if (!data) {
                 res.status(404).send({
@@ -127,33 +132,38 @@ exports.delete = (req, res) => {
 // Update a User 
 exports.updateUser = (req, res) => {
     const username = req.params.username;
+    const authToken = req.headers['authorization'];
+    console.log("UpdateUser - username: " + req.params.username);
+   
+    // new model to update the existing 
+    let updateFields = {};
+    if (req.body.email !== "") updateFields.email = req.body.email;
+    if (req.body.username !== "") updateFields.username = req.body.username;
+    if (req.body.displayName !== "") updateFields.displayName = req.body.displayName;
+    if (req.body.profilePicture !== "") updateFields.profilePicture = req.body.profilePicture;
+    if (req.body.bio !== "") updateFields.bio = req.body.bio;
+    if (req.body.password !== "") {
+        const saltHash = genPassword(String(req.body.password));
+        updateFields.salt = saltHash.salt;
+        updateFields.hash = saltHash.hash;
 
-    // Find first instance of username (username is unique, only 1 will be found)
-    Users.updateOne( { username: username }, 
-        {
-            $set: {
-                // Checks if user did not input a change, ignores field if empty
-                $where: function() {
-                    if (req.body.email !== "") this.email = req.body.email;
-                    if (req.body.username !== "") this.username = req.body.username;
-                    if (req.body.displayName !== "") this.displayName = req.body.displayName;
-                    if (req.body.profilePicture !== "") this.profilePicture = req.body.profilePicture;
-                    if (req.body.bio !== "") this.bio = req.body.bio;
-                    
-                    return true;
-                }
-            },  
-            $currentDate: { lastModified: true }
-        }
+    }
+
+    // Add the last modified timestamp
+    updateFields.lastModified = new Date();
+
+    // Perform the update operation
+    User.updateOne(
+        { username: username }, 
+        { $set: updateFields }
     ).catch (err => {
-        return res.status(304).send({ message: err.message || "Error occurred while editing User." });
+        res.status(304).send({ message: err.message || "Error occurred while editing User." });
         
     });
-    return res.send(200).send({ message: req.params.username + " successfully updated."})
-}
+};
 
 exports.addProduct = asyncHandler(async(req, res) => {
-    const user = await Users.findOne({username: req.params.username});
+    const user = await User.findOne({username: req.params.username});
     if(!user) {
         res.status(404).send({ 
             message: "Not found Users with id " + username });
@@ -178,12 +188,56 @@ exports.addProduct = asyncHandler(async(req, res) => {
 
 });
 
+
 // Logout a User
 exports.logoutUser = (req, res) => {
-    req.logout(function(error) {
-        if (error) {
-            return done(error);
+    console.log("in logout");
+    
+};
+
+// Verify user entered password and JWT token
+exports.loginUser = asyncHandler(async (req, res) => {
+
+    // Find user data by username in request
+    let userToVerify = await User.findOne({username: req.body.username})
+
+    // Check if No user was returned that is registered with inputed username.
+    if (!userToVerify) {
+        res.status(403).send( {message: "Invalid username, could not authorize user. Please log in and try again."} );
+    } 
+    // Username matches a valid user 
+    else { 
+
+        // Check if the password is valid
+        let isValid = validPassword(req.body.password, userToVerify.hash, userToVerify.salt);
+        
+        // If the password is not valid, return a 403 forbidden error
+        if (!isValid) {
+            res.status(403).send( {message: "Invalid password, could not authorize user. Please log in and try again."} );
+        } 
+
+        // If the password is valid, save the user and generate a token
+        // Verify the JWT before logging in the user
+        try {
+            await userToVerify.save();
+
+            
+            // Sign and send the JWT back to the client
+            jwt.sign({ id:  mongoose.Types.ObjectId(userToVerify._id) , username: req.body.username }, "secret", { expiresIn: "14d" }, (err, token) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send({ message: "Failed to generate token" });
+                }
+
+                // Set the Authorization header to the JWT token
+                // Allows postman to use the token in future requests
+                // Client should store this then send back on each request
+                res.set("Authorization", token);
+                res.status(200).send({ message: "User authorized", token });
+            });
+        } catch (saveError) {
+            console.log(saveError);
+            res.status(500).send({ message: "Failed to save user" });
         }
-        res.redirect("/login");
-    })
-}
+    } 
+});

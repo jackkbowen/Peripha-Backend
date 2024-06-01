@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
-const userSchema = mongoose.Schema(
+
+const productSchema = mongoose.Schema(
     {
         name: {
             type: String,
@@ -35,7 +36,7 @@ const userSchema = mongoose.Schema(
             default: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Question_Mark.svg/1200px-Question_Mark.svg.png"
         }
     },
-    { timestamps: true }
+    { timestamps: true, upsert: true }
 );
 
-module.exports = mongoose.model('Product', userSchema);
+module.exports = mongoose.model('Product', productSchema);

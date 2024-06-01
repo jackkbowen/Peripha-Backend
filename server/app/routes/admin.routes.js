@@ -1,6 +1,5 @@
 module.exports = app => {
     const user = require("../controllers/users.controller.js");
-  
     var router = require("express").Router();
   
     // Retrieve all Users

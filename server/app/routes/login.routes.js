@@ -1,8 +1,5 @@
 module.exports = app => {
     const user = require("../controllers/users.controller.js");
-    const passport = require("passport")
-    const {checkLoggedInUser, isUserLoggedIn} = require('../utils/auth');
-    const passport_local = require('passport-local');
     const router = require("express").Router();
 
     // Returns login page (idk if we need this, just a placeholder. react router handles serving pages)
@@ -11,13 +8,8 @@ module.exports = app => {
     });
 
     // Take login information and autenticate user
-    router.post("/", isUserLoggedIn, passport.authenticate('local', {
-        failureRedirect: '/login',
-        failureMessage: true
-        }), function(req, res) {
-            res.redirect('/user/' + req.body.username);
-        });
-
+    router.post("/", user.loginUser);
+       
     app.use("/login", router);
 };
   

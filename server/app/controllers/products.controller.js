@@ -1,6 +1,7 @@
 const Products = require("../models/products.model");
 const Users = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
+const mongoose = require('mongoose');
 
 exports.create = asyncHandler(async(req, res) => {
     // Validate request
@@ -40,15 +41,14 @@ exports.create = asyncHandler(async(req, res) => {
         })
         .catch(err => {
             res.status(500).send({
-                message:
-                    err.message || "Some error occurred while creating the Product."
+                message: "Some error occurred while creating the Product."
             });
             return
         });
 });
 
 // Find a single product with an id
-exports.findOne = (req, res) => {
+exports.findOne = asyncHandler(async(req, res) => {
     const id = req.params.productId;
 
     Products.findById(id)
@@ -66,7 +66,7 @@ exports.findOne = (req, res) => {
                 message: "Error retrieving Product with id=" + id });
             return;
         });
-};
+});
 
 exports.findUserProducts = asyncHandler(async(req, res) => {
     const username = req.params.username;
@@ -98,6 +98,5 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
                 message: "Error retrieving Users with username=" + username });
             return;
         });
-
-    
 });
+
