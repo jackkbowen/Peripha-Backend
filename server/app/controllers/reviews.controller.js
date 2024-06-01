@@ -84,6 +84,7 @@ exports.deleteReview = asyncHandler(async(req, res) => {
 
 exports.updateReview = asyncHandler(async(req, res) => {
     const reviewId = mongoose.Types.ObjectId(req.params.reviewId);
+    console.log("In update")
 
     // Update the review in the reviews Database
     Reviews.findByIdAndUpdate(

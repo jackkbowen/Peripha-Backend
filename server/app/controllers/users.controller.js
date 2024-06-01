@@ -195,15 +195,19 @@ exports.logoutUser = (req, res) => {
     
 };
 
+// Verify user entered password and JWT token
 exports.loginUser = asyncHandler(async (req, res) => {
-    console.log("Testing before verify");
-    
+
+    // Find user data by username in request
     let userToVerify = await User.findOne({username: req.body.username})
-    // No user registered with inputed email.
+
+    // Check if No user was returned that is registered with inputed username.
     if (!userToVerify) {
         res.status(403).send( {message: "Invalid username, could not authorize user. Please log in and try again."} );
-    } else { 
-        console.log("Testing after verify");
+    } 
+    // Username matches a valid user 
+    else { 
+
         // Check if the password is valid
         let isValid = validPassword(req.body.password, userToVerify.hash, userToVerify.salt);
         
@@ -211,18 +215,23 @@ exports.loginUser = asyncHandler(async (req, res) => {
         if (!isValid) {
             res.status(403).send( {message: "Invalid password, could not authorize user. Please log in and try again."} );
         } 
+
         // If the password is valid, save the user and generate a token
         // Verify the JWT before logging in the user
         try {
             await userToVerify.save();
-            console.log("User authorized (before sign): ",  mongoose.Types.ObjectId(userToVerify._id));
+
             
+            // Sign and send the JWT back to the client
             jwt.sign({ id:  mongoose.Types.ObjectId(userToVerify._id) , username: req.body.username }, "secret", { expiresIn: "14d" }, (err, token) => {
                 if (err) {
                     console.log(err);
                     return res.status(500).send({ message: "Failed to generate token" });
                 }
-                console.log("User authorized (after sign): ", token);
+
+                // Set the Authorization header to the JWT token
+                // Allows postman to use the token in future requests
+                // Client should store this then send back on each request
                 res.set("Authorization", token);
                 res.status(200).send({ message: "User authorized", token });
             });

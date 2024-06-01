@@ -5,6 +5,8 @@ const Reviews = require("../models/reviews.model");
 const jwt = require("jsonwebtoken"); 
 const userController = require("../controllers/users.controller.js");
 
+// Function to generate a hashed password and salt
+// Used in account creation to encode password
 function genPassword(password) {
     const salt = crypto.randomBytes(32).toString('hex');
     const genHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha256').toString('hex');
@@ -14,23 +16,27 @@ function genPassword(password) {
     };
 }
 
+// Function to validate if the provided password matches the stored hash and salt
 function validPassword(password, hash, salt) {
     var hashVerify = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha256').toString('hex');
     return hash === hashVerify;
 }
 
-
+// Verify a username is valid and check if the password matches the encrypted salt/hash
 function verifyUser (username, password) {
     const user = User.findOne({username: username})
+
     // No user registered with inputted email.
     if (!user) { 
         return false
     }
+    
     const isValid = validPassword(password, user.hash, user.salt);
     // Successful login.
     if (isValid) {
         user.save();
         return true;
+
     // Failed login.
     } else { 
         console.log('Invalid username or password');
@@ -39,113 +45,106 @@ function verifyUser (username, password) {
   
 };
 
-function checkToken(req, res) {
-    const tokenBody = req.headers['Authorization'];
-    console.log("checkToken - tokenBody: " + tokenBody);
-
-    if(typeof tokenBody !== 'undefined') {
-        const bearer = tokenBody.split(' ');
-        const token = bearer[1];
-
-        req.token = token;
-        
-    } else {
-        //If header is undefined return Forbidden (403)
-        res.status(403).send( { message: 'Error authenticating token, please log in'} );
-    }
-}
-
+// Verifies JWT of the token passed in authToken
+// Returns the username of the user with the corresponding token
 async function verifyJWT(authToken, req, res) {
-    console.log("verifyJWT - authToken: " + authToken);
 
+    // Verifies an authToken exists
+    // authToken is extracted token from header
     if (!authToken) {
         res.status(403).send({ message: 'No Auth Token - You are not authorized to access this page. Please log in.' });
-        return;
+        done();
     } else {
         try {
+
+            // Decode a user from the JWT using the authToken
             const user = await new Promise((resolve, reject) => {
                 jwt.verify(authToken, 'secret', (err, decoded) => {
                     if (err) {
                         reject(err);
+                        done();
                     } else {
                         resolve(decoded);
                     }
                 });
             });
 
+            // Get user info from ID returned by decoding JWT
             userData = await User.findById(user.id);
             if (!userData){
                 res.status(403).send({ message: "No ID found for the JWT token. Please log in again." });
+                done();
             }
-
-            console.log("verifyJWT - userID: " + user.id);
-            console.log("verifyJWT - username: " + userData.username);
-
-            console.log("verifyJWT - userData: " + userData);
             return userData.username
         } catch (err) {
             console.log(err);
             res.status(403).send( { message: 'Verify JWT Failure', error: err } );
-            return; 
+            done(); 
         }
     }
 }
 
+// General Auth function to check if there is ANY user signed in
+// Used for logout and other functions that dont require a protected route for a specific user
 function verifyUserAccessAnyUser(req, res, done) {
     // Extract the JWT token
+    // May have "Bearer" in front of token based on how req is sent, need to split
     const authToken = req.headers["authorization"];
     const token = authToken.split(' ')[1];
-    console.log("Token verifyUserAccess: " + token);
 
+    // Decode the JWT token passed in the req.headers["authorization"]
     verifyJWT(token, req, res).then(async(username) => {
-        console.log("After verifyJWT request - username: " + username)
-        console.log("After verifyJWT request - username: " + req.params.username)
+       
+        // Set the username parameter as the username decoded from verify
+        // Makes easy use of the decoded username in subsequent requests
         req.params.username = username
 
         if (username) {
-            console.log("Usernames match in verifyUserAccessAnyUser, continue to next page")
+            // If a username exists, continue
             done ();
         }
-        console.log("end of verifyUserAccessAnyUser")
+        // Error occurs if there is no username associated with the JWT 
     }).catch(err => {
             console.log(err);
             res.status(500).send( {message: "Some error occurered in verifyUserAccessAnyUser. Please try again."} );
         });
 }
 
+// More specific auth function to verify the user is making a request to a page they own
+// Checks for the lack of username in param and body, this is the case for review/product requests
+// Fills the decoded username in the params in this case
+// Returns the user info that was decoded
 function verifyUserAccess(req, res, done) {
     const authToken = req.headers["authorization"];
     const token = authToken.split(' ')[1];
-    console.log("Token verifyUserAccess: " + token);
 
     verifyJWT(token, req, res).then(async(username) => {
-        console.log("After verifyJWT request - username: " + username)
 
+        // Query to get the username from review (if applicable) 
+        // Maybe should move to reviews function
         if ((!req.body.username) && (!req.params.username)) {
             const reviewId = mongoose.Types.ObjectId(req.params.reviewId);
             userData = await Reviews.findById(reviewId).select('username');
+            
+            // Store username in params if userData found
             if (userData) {
                 req.params.username = userData.username;
-                console.log("Changing params username: " + userData.username);
             }
         }
         
-
-        console.log("After verifyJWT request - username: " + req.params.username)
-
+        // Set comparisonUsername to whichever is not unidentified
         var comparisonUsername = req.params.username ?? req.body.username;
 
+        // If a username exists, continue if it matches comparisonUsername
+        // Matching JWT to request user
         if (username) {
             if (comparisonUsername == username) {
-                console.log("Usernames match in verifyUserAccess, continue to next page")
                 done();
             }
             else {
-                return res.status(403).send( {message: "You cannot access accounts that are not yours. Please log in."} ) 
+                res.status(403).send( {message: "You cannot access accounts that are not yours. Please log in."} ) 
             }
         }
-        console.log("end of verifyUserAccess")
-        res.status(202).send( { message: "Backend call with JWT auth successful."} );
     })
 }
 
@@ -154,7 +153,6 @@ function verifyUserAccess(req, res, done) {
 module.exports.validPassword = validPassword;
 module.exports.genPassword = genPassword;
 module.exports.verifyUser = verifyUser;
-module.exports.checkToken = checkToken;
 module.exports.verifyUserAccess = verifyUserAccess;
 module.exports.verifyUserAccessAnyUser = verifyUserAccessAnyUser;
 module.exports.verifyJWT = verifyJWT;
