@@ -240,3 +240,31 @@ exports.loginUser = asyncHandler(async (req, res) => {
         }
     } 
 });
+
+exports.searchUsersDB = asyncHandler(async(req, res) => {
+    const queryString = req.query.search_query;
+    await User.find({username: {$regex: queryString, $options: 'i'}})
+    .then(data => {
+        if (!data) {
+            res.status(404).send({ 
+                message: "No Users found matching: " + queryString });
+            return;
+        }
+        extractedData = User.find({
+            '_id': {
+                $in : data
+            }, 
+            },
+            { _id: 1, username: 1, displayName: 1, profilePicture: 1, bio: 1 }
+        ).sort({ username : 1 })
+        .then(data => {
+            res.status(200).send(data);
+            return;
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error retrieving User " + username });
+            return;
+        });
+    });
+})

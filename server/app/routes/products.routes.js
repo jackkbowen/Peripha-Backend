@@ -13,7 +13,7 @@ module.exports = app => {
     router.get("/user/:username", product.findUserProducts);
 
     // Get the search results based on the user entered query string
-    router.get("/search/query/", product.searchProductsDB);
+    router.get("/search/query", product.searchProductsDB);
 
     app.use("/products", router);
 };
