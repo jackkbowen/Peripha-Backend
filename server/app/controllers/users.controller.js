@@ -1,4 +1,5 @@
 const User = require("../models/users.model");
+const Blacklist = require("../models/blacklist.model");
 const asyncHandler = require('express-async-handler')
 const jwt = require("jsonwebtoken"); 
 const mongoose = require('mongoose');
@@ -188,11 +189,29 @@ exports.addProduct = asyncHandler(async(req, res) => {
 });
 
 
-// Logout a User
-exports.logoutUser = (req, res) => {
-    console.log("in logout");
-    
+// Middleware to add token to the blacklist
+const blacklistToken = async (token) => {
+    const blacklistEntry = new Blacklist({ token });
+    await blacklistEntry.save();
 };
+
+// Logout a User
+exports.logoutUser = asyncHandler(async (req, res) => {
+    const token = req.headers["authorization"];
+    
+    if (!req.params.tokenInBlacklist) {
+        if (!token) {
+            return res.status(400).send({ message: "No token provided" });
+        }
+    
+        // Add the token to the blacklist
+        await blacklistToken(token);
+        res.status(200).send({ message: "User logged out successfully" });
+        
+    }
+    
+});
+
 
 // Verify user entered password and JWT token
 exports.loginUser = asyncHandler(async (req, res) => {
