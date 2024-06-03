@@ -10,7 +10,7 @@ module.exports = app => {
   
     // Fetch user information by username
     router.get("/:username", user.findUser);
-  
+
     // Logout specific user with username
     router.post("/:username/logout", verifyUserAccessAnyUser, user.logoutUser);
   

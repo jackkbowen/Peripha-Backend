@@ -2,7 +2,7 @@ const User = require("../models/users.model");
 const asyncHandler = require('express-async-handler')
 const jwt = require("jsonwebtoken"); 
 const mongoose = require('mongoose');
-const { validPassword, genPassword } = require('../utils/password');
+const { validPassword, genPassword, verifyJWT } = require('../utils/password');
 
 // Create and Save a new Users
 exports.create = asyncHandler(async(req, res) => {
@@ -90,7 +90,7 @@ exports.findUser = (req, res, done) => {
         .then(data => {
             if (!data) {
                 res.status(404).send({ 
-                    message: "Not found Users with id " + username });
+                    message: "No found Users with Username: " + username });
                 done;
             }
             else res.status(200).send(data);;
@@ -102,7 +102,6 @@ exports.findUser = (req, res, done) => {
             done;
         });
 };
-
 
 // Delete a User with the specified id in the request
 exports.delete = (req, res) => {

@@ -84,6 +84,45 @@ async function verifyJWT(authToken, req, res, done) {
     }
 }
 
+// Verifies JWT of the token passed in authToken
+// Sends back the user data associated with the JWT Token
+async function getJWTUser(req, res, done) {
+    // Verifies an authToken exists
+    // authToken is extracted token from header
+    if (!req.headers.authorization) {
+        res.status(403).send({ message: 'No Auth Token - You are not authorized to access this page. Please log in.' });
+        done();
+    } else {
+        try {
+
+            // Decode a user from the JWT using the authToken
+            const user = await new Promise((resolve, reject) => {
+                jwt.verify(req.headers.authorization, 'secret', (err, decoded) => {
+                    if (err) {
+                        reject(err);
+                        done();
+                    } else {
+                        resolve(decoded);
+                    }
+                });
+            });
+
+            // Get user info from ID returned by decoding JWT
+            userData = await User.findById(user.id);
+            if (!userData){
+                res.status(403).send({ message: "No ID found for the JWT token. Please log in again." });
+                done();
+            }
+            res.status(200).send(userData)
+            done()
+        } catch (err) {
+            console.log(err);
+            res.status(403).send( { message: 'Verify JWT Failure', error: err } );
+            done(); 
+        }
+    }
+}
+
 // General Auth function to check if there is ANY user signed in
 // Used for logout and other functions that dont require a protected route for a specific user
 function verifyUserAccessAnyUser(req, res, done) {
@@ -155,5 +194,6 @@ module.exports.verifyUser = verifyUser;
 module.exports.verifyUserAccess = verifyUserAccess;
 module.exports.verifyUserAccessAnyUser = verifyUserAccessAnyUser;
 module.exports.verifyJWT = verifyJWT;
+module.exports.getJWTUser = getJWTUser
 
 
