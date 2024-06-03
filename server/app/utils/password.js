@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const User = require("../models/users.model");
+const Blacklist = require("../models/blacklist.model");
 const Reviews = require("../models/reviews.model");
 const jwt = require("jsonwebtoken"); 
 const userController = require("../controllers/users.controller.js");
@@ -56,6 +57,12 @@ async function verifyJWT(authToken, req, res, done) {
         done();
     } else {
         try {
+            // Check if the token is in the blacklist
+            req.params.tokenInBlacklist = await Blacklist.findOne({ token: authToken });
+            if (req.params.tokenInBlacklist) {
+                res.status(403).send({ message: 'Token is blacklisted. Please log in again.' });
+                return done();
+            }
 
             // Decode a user from the JWT using the authToken
             const user = await new Promise((resolve, reject) => {
@@ -115,7 +122,6 @@ function verifyUserAccessAnyUser(req, res, done) {
 // Returns the user info that was decoded
 function verifyUserAccess(req, res, done) {
     const authToken = req.headers["authorization"];
-    const token = authToken.split(' ')[1];
 
     verifyJWT(token, req, res, done).then(async(username) => {
 
