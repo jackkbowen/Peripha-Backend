@@ -132,4 +132,3 @@ exports.searchProductsDB = asyncHandler(async(req, res) => {
         // todo apply filters
     }
 })
-
