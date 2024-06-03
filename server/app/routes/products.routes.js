@@ -12,6 +12,9 @@ module.exports = app => {
     // Get multiple products based off of username
     router.get("/user/:username", product.findUserProducts);
 
+    // Get the search results based on the user entered query string
+    router.get("/search", product.searchProductsDB);
+
     app.use("/products", router);
 };
     

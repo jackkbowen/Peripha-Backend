@@ -43,7 +43,7 @@ exports.create = asyncHandler(async(req, res) => {
             res.status(500).send({
                 message: "Some error occurred while creating the Product."
             });
-            return
+            return;
         });
 });
 
@@ -99,4 +99,37 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
             return;
         });
 });
+
+exports.searchProductsDB = asyncHandler(async(req, res) => {
+    const queryString = req.body.queryString;
+    const filters = req.body.filters;
+    if (!filters) {
+        await Products.find({name: {$regex: queryString}})
+        .then(data => {
+            if (!data) {
+                res.status(404).send({ 
+                    message: "No products found matching: " + queryString });
+                return;
+            }
+            extractedData = Products.find({
+                '_id': {
+                    $in : data
+                }, 
+                },
+                { _id: 1, name: 1, category: 1, image: 1 }
+            ).sort({ name : 1 })
+            .then(data => {
+                res.status(200).send(data);
+                return;
+            })
+            .catch(err => {
+                res.status(500).send({
+                    message: "Error retrieving Products from user " + username });
+                return;
+            });
+        });
+    } else {
+        // todo apply filters
+    }
+})
 

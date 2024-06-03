@@ -47,7 +47,7 @@ function verifyUser (username, password) {
 
 // Verifies JWT of the token passed in authToken
 // Returns the username of the user with the corresponding token
-async function verifyJWT(authToken, req, res) {
+async function verifyJWT(authToken, req, res, done) {
 
     // Verifies an authToken exists
     // authToken is extracted token from header
@@ -89,11 +89,10 @@ async function verifyJWT(authToken, req, res) {
 function verifyUserAccessAnyUser(req, res, done) {
     // Extract the JWT token
     // May have "Bearer" in front of token based on how req is sent, need to split
-    const authToken = req.headers["authorization"];
-    const token = authToken.split(' ')[1];
+    const token = req.headers["authorization"];
 
     // Decode the JWT token passed in the req.headers["authorization"]
-    verifyJWT(token, req, res).then(async(username) => {
+    verifyJWT(token, req, res, done).then(async(username) => {
        
         // Set the username parameter as the username decoded from verify
         // Makes easy use of the decoded username in subsequent requests
@@ -118,7 +117,7 @@ function verifyUserAccess(req, res, done) {
     const authToken = req.headers["authorization"];
     const token = authToken.split(' ')[1];
 
-    verifyJWT(token, req, res).then(async(username) => {
+    verifyJWT(token, req, res, done).then(async(username) => {
 
         // Query to get the username from review (if applicable) 
         // Maybe should move to reviews function

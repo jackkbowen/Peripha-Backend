@@ -1,6 +1,7 @@
 module.exports = app => {
     const user = require("../controllers/users.controller.js");
     var router = require("express").Router();
+    const { verifyUserAccessAnyUser, verifyUserAccess } = require('../utils/password');
   
     // Retrieve all Users
     router.get("/", user.findAllUsers);

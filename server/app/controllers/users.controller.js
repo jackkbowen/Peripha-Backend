@@ -84,22 +84,22 @@ exports.findAllUsers = (req, res) => {
 
 
 // Find a single User by their username
-exports.findUser = (req, res) => {
+exports.findUser = (req, res, done) => {
     const username = req.params.username;
     User.findOne({username: username})
         .then(data => {
             if (!data) {
                 res.status(404).send({ 
                     message: "Not found Users with id " + username });
-                return;
+                done;
             }
             else res.status(200).send(data);;
-            return;
+            done;
         })
         .catch(err => {
             res.status(500).send({
                 message: "Error retrieving Users with username=" + username });
-            return;
+            done;
         });
 };
 

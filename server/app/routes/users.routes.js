@@ -9,7 +9,7 @@ module.exports = app => {
     });
   
     // Fetch user information by username
-    router.get("/:username", verifyUserAccessAnyUser, user.findUser);
+    router.get("/:username", user.findUser);
   
     // Logout specific user with username
     router.post("/:username/logout", verifyUserAccessAnyUser, user.logoutUser);
@@ -18,7 +18,7 @@ module.exports = app => {
     router.put("/:username/edit", verifyUserAccess, user.updateUser);
 
     // Add Product to User
-   router.post("/:username/addProduct/:productId", verifyUserAccess, user.addProduct);
+   router.post("/:username/addProduct/:productId", user.addProduct);
   
     app.use("/user", router);
 };
