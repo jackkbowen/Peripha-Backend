@@ -156,7 +156,10 @@ exports.updateUser = (req, res) => {
     User.updateOne(
         { username: username },
         { $set: updateFields }
-    ).catch (err => {
+    ).then(updatedUser => {
+      res.status(200).send( {message: "User successfully updated"} )
+    })
+    .catch (err => {
         res.status(304).send({ message: err.message || "Error occurred while editing User." });
 
     });

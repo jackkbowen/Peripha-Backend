@@ -18,7 +18,7 @@ module.exports = app => {
     router.put("/:username/edit", verifyUserAccess, user.updateUser);
 
     // Add Product to User
-    router.post("/:username/addProduct/:productId", user.addProduct);
+    router.post("/:username/addProduct/:productId", verifyUserAccess, user.addProduct);
 
     // Get the search results based on the user entered query string
     router.get("/search/query", user.searchUsersDB);
