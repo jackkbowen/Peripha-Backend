@@ -1,7 +1,7 @@
 const User = require("../models/users.model");
 const Blacklist = require("../models/blacklist.model");
 const asyncHandler = require('express-async-handler')
-const jwt = require("jsonwebtoken"); 
+const jwt = require("jsonwebtoken");
 const mongoose = require('mongoose');
 const { validPassword, genPassword, verifyJWT } = require('../utils/password');
 
@@ -17,13 +17,13 @@ exports.create = asyncHandler(async(req, res) => {
     } else if (!req.body.password) {
         res.status(400).send({message: "Password field cannot be empty"})
         return;
-    } 
+    }
 
     // Check for existing user
     const userExists = await User.findOne({$or: [{ email: req.body.email }, { username: req.body.username }]});
     //console.log(userExists);
         if (userExists) {
-            res.status(409).send({message: "ERROR: User already exists. Please use a different email or username.", 
+            res.status(409).send({message: "ERROR: User already exists. Please use a different email or username.",
                                 email: req.body.email});
             return;
         }
@@ -90,7 +90,7 @@ exports.findUser = (req, res, done) => {
     User.findOne({username: username})
         .then(data => {
             if (!data) {
-                res.status(404).send({ 
+                res.status(404).send({
                     message: "No found Users with Username: " + username });
                 done;
             }
@@ -129,13 +129,13 @@ exports.delete = (req, res) => {
         });
 };
 
-// Update a User 
+// Update a User
 exports.updateUser = (req, res) => {
     const username = req.params.username;
     const authToken = req.headers['authorization'];
     console.log("UpdateUser - username: " + req.params.username);
-   
-    // new model to update the existing 
+
+    // new model to update the existing
     let updateFields = {};
     if (req.body.email !== "") updateFields.email = req.body.email;
     if (req.body.username !== "") updateFields.username = req.body.username;
@@ -154,18 +154,18 @@ exports.updateUser = (req, res) => {
 
     // Perform the update operation
     User.updateOne(
-        { username: username }, 
+        { username: username },
         { $set: updateFields }
     ).catch (err => {
         res.status(304).send({ message: err.message || "Error occurred while editing User." });
-        
+
     });
 };
 
 exports.addProduct = asyncHandler(async(req, res) => {
     const user = await User.findOne({username: req.params.username});
     if(!user) {
-        res.status(404).send({ 
+        res.status(404).send({
             message: "Not found Users with id " + username });
         return;
     }
@@ -198,18 +198,18 @@ const blacklistToken = async (token) => {
 // Logout a User
 exports.logoutUser = asyncHandler(async (req, res) => {
     const token = req.headers["authorization"];
-    
-    if (!req.params.tokenInBlacklist) {
-        if (!token) {
-            return res.status(400).send({ message: "No token provided" });
-        }
-    
+
+    if (!token) {
+      return res.status(400).send({ message: "No token provided" });
+    }
+
+      if (!req.params.tokenInBlacklist) {
+
         // Add the token to the blacklist
         await blacklistToken(token);
         res.status(200).send({ message: "User logged out successfully" });
-        
+
     }
-    
 });
 
 
@@ -222,24 +222,24 @@ exports.loginUser = asyncHandler(async (req, res) => {
     // Check if No user was returned that is registered with inputed username.
     if (!userToVerify) {
         res.status(403).send( {message: "Invalid username, could not authorize user. Please log in and try again."} );
-    } 
-    // Username matches a valid user 
-    else { 
+    }
+    // Username matches a valid user
+    else {
 
         // Check if the password is valid
         let isValid = validPassword(req.body.password, userToVerify.hash, userToVerify.salt);
-        
+
         // If the password is not valid, return a 403 forbidden error
         if (!isValid) {
             res.status(403).send( {message: "Invalid password, could not authorize user. Please log in and try again."} );
-        } 
+        }
 
         // If the password is valid, save the user and generate a token
         // Verify the JWT before logging in the user
         try {
             await userToVerify.save();
 
-            
+
             // Sign and send the JWT back to the client
             jwt.sign({ id:  mongoose.Types.ObjectId(userToVerify._id) , username: req.body.username }, "secret", { expiresIn: "14d" }, (err, token) => {
                 if (err) {
@@ -257,7 +257,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
             console.log(saveError);
             res.status(500).send({ message: "Failed to save user" });
         }
-    } 
+    }
 });
 
 exports.searchUsersDB = asyncHandler(async(req, res) => {
@@ -265,14 +265,14 @@ exports.searchUsersDB = asyncHandler(async(req, res) => {
     await User.find({username: {$regex: queryString, $options: 'i'}})
     .then(data => {
         if (!data) {
-            res.status(404).send({ 
+            res.status(404).send({
                 message: "No Users found matching: " + queryString });
             return;
         }
         extractedData = User.find({
             '_id': {
                 $in : data
-            }, 
+            },
             },
             { _id: 1, username: 1, displayName: 1, profilePicture: 1, bio: 1 }
         ).sort({ username : 1 })

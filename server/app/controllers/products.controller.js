@@ -141,3 +141,31 @@ exports.searchProductsDB = asyncHandler(async(req, res) => {
     }
 })
 
+
+
+exports.deleteProduct = asyncHandler(async(req, res) => {
+  const productId = mongoose.Types.ObjectId(req.params.productId);
+
+  // Delete the product from the Product Database
+  Products.findByIdAndDelete(productId)
+      .then(product => {
+          if (!product) {
+              return res.status(404).send({
+                  message: "Product not found with id " + productId
+              });
+          }
+
+          Users.updateMany(
+            { products: { $in: [productId] } },
+            { $pull: { products: productId } }
+          );
+
+          res.status(200).send({ message: "Product deleted successfully!" });
+      })
+      .catch(err => {
+          res.status(500).send({
+              message: err.message || "Some error occurred while deleting the Product."
+          });
+      });
+});
+

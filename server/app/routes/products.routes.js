@@ -15,6 +15,9 @@ module.exports = app => {
     // Get the search results based on the user entered query string
     router.get("/search/query", product.searchProductsDB);
 
+    // Delete a product from the Products Database
+    router.delete("/delete/:productId", product.deleteProduct);
+
     app.use("/products", router);
 };
-    
+

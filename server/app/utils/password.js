@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const User = require("../models/users.model");
 const Blacklist = require("../models/blacklist.model");
 const Reviews = require("../models/reviews.model");
-const jwt = require("jsonwebtoken"); 
+const jwt = require("jsonwebtoken");
 const userController = require("../controllers/users.controller.js");
 
 // Function to generate a hashed password and salt
@@ -28,10 +28,10 @@ function verifyUser (username, password) {
     const user = User.findOne({username: username})
 
     // No user registered with inputted email.
-    if (!user) { 
+    if (!user) {
         return false
     }
-    
+
     const isValid = validPassword(password, user.hash, user.salt);
     // Successful login.
     if (isValid) {
@@ -39,11 +39,11 @@ function verifyUser (username, password) {
         return true;
 
     // Failed login.
-    } else { 
+    } else {
         console.log('Invalid username or password');
         return false;
     }
-  
+
 };
 
 // Verifies JWT of the token passed in authToken
@@ -52,43 +52,38 @@ async function verifyJWT(authToken, req, res, done) {
 
     // Verifies an authToken exists
     // authToken is extracted token from header
-    if (!authToken) {
-        res.status(403).send({ message: 'No Auth Token - You are not authorized to access this page. Please log in.' });
-        done();
-    } else {
-        try {
-            // Check if the token is in the blacklist
-            req.params.tokenInBlacklist = await Blacklist.findOne({ token: authToken });
-            if (req.params.tokenInBlacklist) {
-                res.status(403).send({ message: 'Token is blacklisted. Please log in again.' });
-                return done();
-            }
-
-            // Decode a user from the JWT using the authToken
-            const user = await new Promise((resolve, reject) => {
-                jwt.verify(authToken, 'secret', (err, decoded) => {
-                    if (err) {
-                        reject(err);
-                        done();
-                    } else {
-                        resolve(decoded);
-                    }
-                });
-            });
-
-            // Get user info from ID returned by decoding JWT
-            userData = await User.findById(user.id);
-            if (!userData){
-                res.status(403).send({ message: "No ID found for the JWT token. Please log in again." });
-                done();
-            }
-            return userData.username
-        } catch (err) {
-            console.log(err);
-            res.status(403).send( { message: 'Verify JWT Failure', error: err } );
-            done(); 
+    try {
+        // Check if the token is in the blacklist
+        req.params.tokenInBlacklist = await Blacklist.findOne({ token: authToken });
+        if (req.params.tokenInBlacklist) {
+            res.status(403).send({ message: 'Token is blacklisted. Please log in again.' });
+            return done();
         }
+
+        // Decode a user from the JWT using the authToken
+        const user = await new Promise((resolve, reject) => {
+            jwt.verify(authToken, 'secret', (err, decoded) => {
+                if (err) {
+                    reject(err);
+                    done();
+                } else {
+                    resolve(decoded);
+                }
+            });
+        });
+
+        // Get user info from ID returned by decoding JWT
+        userData = await User.findById(user.id);
+        if (!userData){
+            res.status(403).send({ message: "No ID found for the JWT token. Please log in again." });
+            done();
+        }
+        return userData.username;
+    } catch (err) {
+        console.log(err);
+        done();
     }
+
 }
 
 // Verifies JWT of the token passed in authToken
@@ -125,7 +120,7 @@ async function getJWTUser(req, res, done) {
         } catch (err) {
             console.log(err);
             res.status(403).send( { message: 'Verify JWT Failure', error: err } );
-            done(); 
+            done();
         }
     }
 }
@@ -136,10 +131,14 @@ function verifyUserAccessAnyUser(req, res, done) {
     // Extract the JWT token
     // May have "Bearer" in front of token based on how req is sent, need to split
     const token = req.headers["authorization"];
+    if (!token) {
+      res.status(403).send({ message: 'No Auth Token - You are not authorized to access this page. Please log in.' });
+      return;
+    }
 
     // Decode the JWT token passed in the req.headers["authorization"]
     verifyJWT(token, req, res, done).then(async(username) => {
-       
+
         // Set the username parameter as the username decoded from verify
         // Makes easy use of the decoded username in subsequent requests
         req.params.username = username
@@ -148,11 +147,8 @@ function verifyUserAccessAnyUser(req, res, done) {
             // If a username exists, continue
             done ();
         }
-        // Error occurs if there is no username associated with the JWT 
-    }).catch(err => {
-            console.log(err);
-            res.status(500).send( {message: "Some error occurered in verifyUserAccessAnyUser. Please try again."} );
-        });
+        // Error occurs if there is no username associated with the JWT
+    })
 }
 
 // More specific auth function to verify the user is making a request to a page they own
@@ -164,18 +160,18 @@ function verifyUserAccess(req, res, done) {
 
     verifyJWT(token, req, res, done).then(async(username) => {
 
-        // Query to get the username from review (if applicable) 
+        // Query to get the username from review (if applicable)
         // Maybe should move to reviews function
         if ((!req.body.username) && (!req.params.username)) {
             const reviewId = mongoose.Types.ObjectId(req.params.reviewId);
             userData = await Reviews.findById(reviewId).select('username');
-            
+
             // Store username in params if userData found
             if (userData) {
                 req.params.username = userData.username;
             }
         }
-        
+
         // Set comparisonUsername to whichever is not unidentified
         var comparisonUsername = req.params.username ?? req.body.username;
 
@@ -186,7 +182,7 @@ function verifyUserAccess(req, res, done) {
                 done();
             }
             else {
-                res.status(403).send( {message: "You cannot access accounts that are not yours. Please log in."} ) 
+                res.status(403).send( {message: "You cannot access accounts that are not yours. Please log in."} )
             }
         }
     })

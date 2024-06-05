@@ -31,19 +31,19 @@ exports.addReview = asyncHandler(async(req, res) => {
             });
             return
         });
-    
+
     // Link the Review to the associated product
     // One (product) to Many (reviews) relationship
-    Products.updateMany( { _id: productId }, 
+    Products.updateMany( { _id: productId },
         {
             $push: {reviews: newReview },
             $currentDate: { lastModified: true }
         },
     ).catch (err => {
         return res.status(400).send({ message: "Error occurred while adding a review to product: " + productId + " Error: " + err });
-            
+
     });
-    return 
+    return
 });
 
 
@@ -52,8 +52,6 @@ exports.addReview = asyncHandler(async(req, res) => {
 exports.deleteReview = asyncHandler(async(req, res) => {
     const reviewId = mongoose.Types.ObjectId(req.params.reviewId);
     const productId = mongoose.Types.ObjectId(req.params.productId);
-
-    userData = await Reviews.findById(reviewId);
 
     // Delete the review from the reviews Database
     Reviews.findByIdAndDelete(reviewId)
@@ -140,7 +138,7 @@ exports.getAllReviews = asyncHandler(async(req, res) => {
     await Products.findById(productId)
         .then(data => {
             if (!data) {
-                res.status(404).send({ 
+                res.status(404).send({
                     message: "No Product with id " + productId });
                 return;
             }
