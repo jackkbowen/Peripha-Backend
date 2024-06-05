@@ -146,26 +146,53 @@ exports.searchProductsDB = asyncHandler(async(req, res) => {
 exports.deleteProduct = asyncHandler(async(req, res) => {
   const productId = mongoose.Types.ObjectId(req.params.productId);
 
-  // Delete the product from the Product Database
+  userData = await Products.findById(productId);
+
+  // Delete the review from the reviews Database
   Products.findByIdAndDelete(productId)
       .then(product => {
           if (!product) {
               return res.status(404).send({
-                  message: "Product not found with id " + productId
+                  message: "Review not found with id " + productId
               });
           }
 
+          // Remove the reference of the review from the product
           Users.updateMany(
-            { products: { $in: [productId] } },
-            { $pull: { products: productId } }
+            { products: { $in: product._id } },
+            { $pull: { products: { $in: product._id } } }
           );
 
           res.status(200).send({ message: "Product deleted successfully!" });
       })
       .catch(err => {
           res.status(500).send({
-              message: err.message || "Some error occurred while deleting the Product."
+              message: err.message || "Some error occurred while deleting the Review."
           });
       });
 });
+
+
+exports.deleteProduct = asyncHandler(async(req, res) => {
+  const productId = mongoose.Types.ObjectId(req.params.productId);
+
+  // Delete the product from the Product Database
+  const deletedProductsUsers = await Users.updateMany(
+    { products: productId },
+    { $pull: { products: productId } })
+
+  if (!deletedProductsUsers) {
+      return res.status(404).send( { message: "Product not found with id " + productId });
+    }
+
+  Products.findByIdAndDelete(productId)
+    .then(product => {
+      if (!product) {
+        return res.status(404).send( {message: "Review not found with id " + productId} );
+      }
+    });
+
+  res.status(200).send({ message: "Product deleted successfully!" });
+});
+
 
