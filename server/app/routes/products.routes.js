@@ -4,7 +4,7 @@ module.exports = app => {
     const { verifyUserAccessAnyUser, verifyUserAccess } = require('../utils/password');
 
     // Create a new Product
-    router.post("/", verifyUserAccessAnyUser, product.create);
+    router.post("/", product.create);
 
     // Get a product by product ID
     router.get("/:productId", product.findOne);
