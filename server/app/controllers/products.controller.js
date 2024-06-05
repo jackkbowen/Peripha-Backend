@@ -111,8 +111,8 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
 });
 
 exports.searchProductsDB = asyncHandler(async(req, res) => {
-    const queryString = req.body.search_query;
-
+    const queryString = req.query.search_query;
+    console.log(queryString)
     await Products.find({name: {$regex: queryString, $options: 'i'}})
     .then(data => {
         if (!data) {
