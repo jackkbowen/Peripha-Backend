@@ -11,12 +11,22 @@ exports.create = asyncHandler(async(req, res) => {
     } else if (!req.body.category) {
         res.status(400).send({message: "Category field cannot be empty"})
         return;
-    } 
+    } else if (!req.body.manufacturer) {
+      res.status(400).send({message: "Manufacturer field cannot be empty"})
+      return;
+    } else if (!req.body.image) {
+      res.status(400).send({message: "Image field cannot be empty"})
+      return;
+    } else if (!req.body.specs) {
+      res.status(400).send({message: "Specs field cannot be empty"})
+      return;
+  }
+
 
     // Check for existing Product
     const productExists = await Products.findOne({ name: req.body.name });
         if (productExists) {
-            res.status(409).send({message: "ERROR: Product already exists. Please use the existing product.", 
+            res.status(409).send({message: "ERROR: Product already exists. Please use the existing product.",
                                 product: req.body.name});
             return;
         }
@@ -54,7 +64,7 @@ exports.findOne = asyncHandler(async(req, res) => {
     Products.findById(id)
         .then(data => {
             if (!data) {
-                res.status(404).send({ 
+                res.status(404).send({
                     message: "No Products found with id " + id });
                 return;
             }
@@ -74,7 +84,7 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
     await Users.findOne({username: username})
         .then(data => {
             if (!data) {
-                res.status(404).send({ 
+                res.status(404).send({
                     message: "Not found Users with id " + username });
                 return;
             }
@@ -101,20 +111,20 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
 });
 
 exports.searchProductsDB = asyncHandler(async(req, res) => {
-    const queryString = req.query.search_query;
+    const queryString = req.body.search_query;
     const filters = req.body.filters;
     if (!filters) {
         await Products.find({name: {$regex: queryString, $options: 'i'}})
         .then(data => {
             if (!data) {
-                res.status(404).send({ 
+                res.status(404).send({
                     message: "No products found matching: " + queryString });
                 return;
             }
             extractedData = Products.find({
                 '_id': {
                     $in : data
-                }, 
+                },
                 },
                 { _id: 1, name: 1, category: 1, image: 1 }
             ).sort({ name : 1 })
@@ -128,7 +138,6 @@ exports.searchProductsDB = asyncHandler(async(req, res) => {
                 return;
             });
         });
-    } else {
-        // todo apply filters
     }
 })
+
