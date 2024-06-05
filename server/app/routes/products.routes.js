@@ -13,8 +13,11 @@ module.exports = app => {
     router.get("/user/:username", product.findUserProducts);
 
     // Get the search results based on the user entered query string
-    router.get("/search/query/", product.searchProductsDB);
+    router.get("/search/query", product.searchProductsDB);
+
+    // Delete a product from the Products Database
+    router.delete("/delete/:productId", product.deleteProduct);
 
     app.use("/products", router);
 };
-    
+
