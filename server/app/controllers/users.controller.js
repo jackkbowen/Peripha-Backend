@@ -162,7 +162,9 @@ exports.updateUser = (req, res) => {
     });
 };
 
+// Add a product to a users list of owned proudcts
 exports.addProduct = asyncHandler(async(req, res) => {
+    // Search Users DB to find user with the given username
     const user = await User.findOne({username: req.params.username});
     if(!user) {
         res.status(404).send({
@@ -170,6 +172,7 @@ exports.addProduct = asyncHandler(async(req, res) => {
         return;
     }
 
+    // Append the product to the list of products in the users info
     user.products.push(req.params.productId);
     user
         .save(user)
@@ -260,7 +263,9 @@ exports.loginUser = asyncHandler(async (req, res) => {
     }
 });
 
+// Function for querying our Users DB during user search
 exports.searchUsersDB = asyncHandler(async(req, res) => {
+    // Search Users DB to find user with a username containing the given queryString
     const queryString = req.query.search_query;
     await User.find({username: {$regex: queryString, $options: 'i'}})
     .then(data => {
