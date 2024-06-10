@@ -158,7 +158,7 @@ function verifyUserAccessAnyUser(req, res, done) {
 function verifyUserAccess(req, res, done) {
     const authToken = req.headers["authorization"];
 
-    verifyJWT(token, req, res, done).then(async(username) => {
+    verifyJWT(authToken, req, res, done).then(async(username) => {
 
         // Query to get the username from review (if applicable)
         // Maybe should move to reviews function

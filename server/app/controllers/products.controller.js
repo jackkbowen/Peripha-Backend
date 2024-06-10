@@ -111,34 +111,32 @@ exports.findUserProducts = asyncHandler(async(req, res) => {
 });
 
 exports.searchProductsDB = asyncHandler(async(req, res) => {
-    const queryString = req.body.search_query;
-    const filters = req.body.filters;
-    if (!filters) {
-        await Products.find({name: {$regex: queryString, $options: 'i'}})
+    const queryString = req.query.search_query;
+    await Products.find({name: {$regex: queryString, $options: 'i'}})
+    .then(data => {
+        if (!data) {
+            res.status(404).send({
+                message: "No products found matching: " + queryString });
+            return;
+        }
+        extractedData = Products.find({
+            '_id': {
+                $in : data
+            },
+            },
+            { _id: 1, name: 1, category: 1, image: 1 }
+        ).sort({ name : 1 })
         .then(data => {
-            if (!data) {
-                res.status(404).send({
-                    message: "No products found matching: " + queryString });
-                return;
-            }
-            extractedData = Products.find({
-                '_id': {
-                    $in : data
-                },
-                },
-                { _id: 1, name: 1, category: 1, image: 1 }
-            ).sort({ name : 1 })
-            .then(data => {
-                res.status(200).send(data);
-                return;
-            })
-            .catch(err => {
-                res.status(500).send({
-                    message: "Error retrieving Products from user " + username });
-                return;
-            });
+            res.status(200).send(data);
+            return;
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: "Error retrieving Products from user " + username });
+            return;
         });
-    }
+    });
+
 })
 
 
