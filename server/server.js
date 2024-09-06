@@ -5,7 +5,7 @@ const cors = require("cors");
 const app = express();
 
 var corsOptions = {
-  origin: ["https://peripha-backend.vercel.app/"]
+  origin: ["https://peripha-frontend.vercel.app/"]
 };
 
 app.use(cors(corsOptions));
