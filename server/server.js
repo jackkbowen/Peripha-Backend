@@ -8,7 +8,7 @@ var corsOptions = {
   origin: ["https://peripha-frontend.vercel.app/"]
 };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
 // parse requests of content-type - application/json
 app.use(express.json());
